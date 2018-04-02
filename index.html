@@ -2,19 +2,100 @@
 <html>
 <head>
     <meta charset='utf-8' />
-    <title>Display a map</title>
+    <title>Intermodal Planner</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body { margin:0; padding:0; }
-        #map { position:absolute; top:0; bottom:0; width:100%; }
+        body {
+          margin:0;
+          padding:0;
+        }
+        #map {
+          position:absolute;
+          top:0;
+          bottom:0;
+          width:100%;
+        }
+        #search-box {
+          position:absolute;
+          margin:50px 50px 50px 50px;
+          padding: 10px 10px 10px 10px;
+          width: 400px;
+          height:150px;
+          background-color: white;
+          border-radius: 15px;
+          background: rgba(255,255,255,0.9);
+        }
+        #search-table {
+          position: relative;
+          width: 90%;
+          height: 100%;
+        }
+        #search-table tr {
+          position: relative;
+          height: 50px;
+          width: 200px;
+        }
+        #search-table input {
+          position: relative;
+          width: 80%;
+          height: 80%;
+          font-size: 14px;
+        }
+
+        #search-table button {
+          position: relative;
+          width: 100%;
+          height: 80%;
+          font-size: 14px;
+        }
+        #origin {
+          border: none;
+          color: white;
+          background-color: green;
+        }
+        #destination {
+          border: none;
+          color: white;
+          background-color: red;
+        }
     </style>
 </head>
 <body>
 
 <div id='map'></div>
+
+<div id="search-box">
+
+  <div id="search-input">
+    <table id = "search-table">
+      <tbody>
+        <tr>
+          <th>
+            <input placeholder="Origin place"/>
+          </th>
+          <th>
+            <button id="origin">Find</button>
+          </th>
+        </tr>
+        <tr>
+          <th>
+            <input placeholder="Destination place"/>
+          </th>
+          <th>
+            <button id= "destination">Find</button>
+          </th>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 <script>
+
+const plannerEndpoint = "http://127.0.0.1:8080/";
+const ipEndpoint = "http://freegeoip.net/json/";
+
 mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
 var map = new mapboxgl.Map({
     container: 'map', // container id
@@ -22,6 +103,9 @@ var map = new mapboxgl.Map({
     center: [-74.50, 40], // starting position [lng, lat]
     zoom: 9 // starting zoom
 });
+
+fetch(ipEndpoint).then( ip => console.log(ip));
+
 </script>
 
 </body>

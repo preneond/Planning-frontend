@@ -11,6 +11,9 @@
           margin:0;
           padding:0;
         }
+        img {
+          margin-right: 20px;
+        }
         #map {
           position:absolute;
           top:0;
@@ -50,15 +53,10 @@
           height: 80%;
           font-size: 14px;
         }
-        #origin {
+        #planRouteBtn {
           border: none;
           color: white;
           background-color: green;
-        }
-        #destination {
-          border: none;
-          color: white;
-          background-color: red;
         }
     </style>
 </head>
@@ -69,14 +67,14 @@
 <div id="search-box">
 
   <div id="search-input">
-    <table id = "search-table">
+    <table id="search-table">
       <tbody>
         <tr>
           <th>
             <input placeholder="Origin place"/>
           </th>
           <th>
-            <button id="origin">Find</button>
+              <img id="originMarker" src="img/markers/marker_origin.png" alt="" height=30 />
           </th>
         </tr>
         <tr>
@@ -84,7 +82,18 @@
             <input placeholder="Destination place"/>
           </th>
           <th>
-            <button id= "destination">Find</button>
+            <img id="destMarker" src="img/markers/marker_destination.png" alt="" height=30 />
+          </th>
+        </tr>
+        <tr>
+          <th>
+            <img id="carIcon" src="img/transport_modes/car_enabled.png" alt="" height=20 />
+            <img id="transitIcon" src="img/transport_modes/transit_enabled.png" alt="" height=20 />
+            <img id="bikeIcon" src="img/transport_modes/bike_enabled.png" alt="" height=20 />
+            <img id="walkIcon" src="img/transport_modes/walking_enabled.png" alt="" height=20 />
+          </th>
+          <th>
+            <button id="planRouteBtn">Find</button> 
           </th>
         </tr>
       </tbody>
@@ -93,18 +102,72 @@
 </div>
 <script>
 
-const plannerEndpoint = "http://127.0.0.1:8080/";
-const ipEndpoint = "http://freegeoip.net/json/";
+var originMarkEnabled = false;
+var originPicked = false;
+var destinationMarkEnabled = false;
+var destinationPicked = false;
+
+function centerMap(position) {
+  map.flyTo({center: e.features[0].geometry.coordinates});
+  console.log(position);
+}
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
 var map = new mapboxgl.Map({
     container: 'map', // container id
     style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
-    center: [-74.50, 40], // starting position [lng, lat]
-    zoom: 9 // starting zoom
+    center: [14.42076, 50.08804], // starting position [lng, lat]
+    zoom: 12 // starting zoom
 });
 
-fetch(ipEndpoint).then( ip => console.log(ip));
+if ("geolocation" in navigator) {
+  navigator.geolocation.getCurrentPosition(position => map.flyTo({center: [position.coords.longitude, position.coords.latitude]}));
+}
+
+// map.on('load', function () {
+    // Center the map on the coordinates of any clicked symbol from the 'symbols' layer.
+    // map.on('click', 'symbols', function (e) {
+    //     map.flyTo({center: e.features[0].geometry.coordinates});
+    // });
+
+    // // Change the cursor to a pointer when the it enters a feature in the 'symbols' layer.
+    // map.on('mouseenter', 'symbols', function () {
+    //     map.getCanvas().style.cursor = 'pointer';
+    // });
+    //
+    // // Change it back to a pointer when it leaves.
+    // map.on('mouseleave', 'symbols', function () {
+    //     map.getCanvas().style.cursor = '';
+    // });
+
+
+//     map.loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png', function(error, image) {
+//         if (error) throw error;
+//         map.addImage('cat', image);
+//         map.addLayer({
+//             "id": "points",
+//             "type": "symbol",
+//             "source": {
+//                 "type": "geojson",
+//                 "data": {
+//                     "type": "FeatureCollection",
+//                     "features": [{
+//                         "type": "Feature",
+//                         "geometry": {
+//                             "type": "Point",
+//                             "coordinates": [14.42076, 50.08804]
+//                         }
+//                     }]
+//                 }
+//             },
+//             "layout": {
+//                 "icon-image": "cat",
+//                 "icon-size": 0.25
+//             }
+//         });
+// });
+//
+// });
 
 </script>
 

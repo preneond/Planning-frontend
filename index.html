@@ -1,175 +1,245 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8' />
-    <title>Intermodal Planner</title>
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
-    <style>
-        body {
-          margin:0;
-          padding:0;
-        }
-        img {
-          margin-right: 20px;
-        }
-        #map {
-          position:absolute;
-          top:0;
-          bottom:0;
-          width:100%;
-        }
-        #search-box {
-          position:absolute;
-          margin:50px 50px 50px 50px;
-          padding: 10px 10px 10px 10px;
-          width: 400px;
-          height:150px;
-          background-color: white;
-          border-radius: 15px;
-          background: rgba(255,255,255,0.9);
-        }
-        #search-table {
-          position: relative;
-          width: 90%;
-          height: 100%;
-        }
-        #search-table tr {
-          position: relative;
-          height: 50px;
-          width: 200px;
-        }
-        #search-table input {
-          position: relative;
-          width: 80%;
-          height: 80%;
-          font-size: 14px;
-        }
+  <!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset='utf-8' />
+      <title>Intermodal Planner</title>
+      <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+      <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
+      <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
+      <style>
+          body {
+            margin:0;
+            padding:0;
+          }
+          img {
+            margin-right: 20px;
+          }
+          #map {
+            position:absolute;
+            top:0;
+            bottom:0;
+            width:100%;
+          }
+          #search-box {
+            position:absolute;
+            margin:50px 50px 50px 50px;
+            padding: 10px 10px 10px 10px;
+            width: 400px;
+            height:150px;
+            background-color: white;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.9);
+          }
+          #search-table {
+            position: relative;
+            width: 90%;
+            height: 100%;
+          }
+          #search-table tr {
+            position: relative;
+            height: 50px;
+            width: 200px;
+          }
+          #search-table input {
+            position: relative;
+            width: 80%;
+            height: 80%;
+            font-size: 14px;
+          }
 
-        #search-table button {
-          position: relative;
-          width: 100%;
-          height: 80%;
-          font-size: 14px;
-        }
-        #planRouteBtn {
-          border: none;
-          color: white;
-          background-color: green;
-        }
-    </style>
-</head>
-<body>
+          #search-table button {
+            position: relative;
+            width: 100%;
+            height: 80%;
+            font-size: 14px;
+          }
+          #planRouteBtn {
+            border: none;
+            color: white;
+            background-color: green;
+          }
+      </style>
+  </head>
+  <body>
 
-<div id='map'></div>
+  <div id='map'></div>
 
-<div id="search-box">
+  <div id="search-box">
 
-  <div id="search-input">
-    <table id="search-table">
-      <tbody>
-        <tr>
-          <th>
-            <input placeholder="Origin place"/>
-          </th>
-          <th>
-              <img id="originMarker" src="img/markers/marker_origin.png" alt="" height=30 />
-          </th>
-        </tr>
-        <tr>
-          <th>
-            <input placeholder="Destination place"/>
-          </th>
-          <th>
-            <img id="destMarker" src="img/markers/marker_destination.png" alt="" height=30 />
-          </th>
-        </tr>
-        <tr>
-          <th>
-            <img id="carIcon" src="img/transport_modes/car_enabled.png" alt="" height=20 />
-            <img id="transitIcon" src="img/transport_modes/transit_enabled.png" alt="" height=20 />
-            <img id="bikeIcon" src="img/transport_modes/bike_enabled.png" alt="" height=20 />
-            <img id="walkIcon" src="img/transport_modes/walking_enabled.png" alt="" height=20 />
-          </th>
-          <th>
-            <button id="planRouteBtn">Find</button> 
-          </th>
-        </tr>
-      </tbody>
-    </table>
+    <div id="search-input">
+      <table id="search-table">
+        <tbody>
+          <tr>
+            <th>
+              <input id="placeInput" placeholder="Origin place"/>
+            </th>
+            <th>
+                <img id="originMarker" src="img/markers/marker_origin.png" alt="" height=30 />
+            </th>
+          </tr>
+          <tr>
+            <th>
+              <input id="placeInput" placeholder="Destination place"/>
+            </th>
+            <th>
+              <img id="destMarker" src="img/markers/marker_destination.png" alt="" height=30 />
+            </th>
+          </tr>
+          <tr>
+            <th>
+              <img id="carIcon" src="img/transport_modes/car_enabled.png" alt="" height=25 />
+              <img id="transitIcon" src="img/transport_modes/transit_enabled.png" alt="" height=25 />
+              <img id="bikeIcon" src="img/transport_modes/bike_enabled.png" alt="" height=25 />
+              <img id="walkIcon" src="img/transport_modes/walk_enabled.png" alt="" height=25 />
+            </th>
+            <th>
+              <button id="planRouteBtn">Find</button>
+            </th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
-<script>
+  <script>
 
-var originMarkEnabled = false;
-var originPicked = false;
-var destinationMarkEnabled = false;
-var destinationPicked = false;
+  var originMarkEnabled = false;
+  var originPicked = false;
+  var destinationMarkEnabled = false;
+  var destinationPicked = false;
 
-function centerMap(position) {
-  map.flyTo({center: e.features[0].geometry.coordinates});
-  console.log(position);
-}
+  var carEnabled = true;
+  var transitEnabled = true;
+  var bikeEnabled = true;
+  var walkEnabled = true;
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
-var map = new mapboxgl.Map({
-    container: 'map', // container id
-    style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
-    center: [14.42076, 50.08804], // starting position [lng, lat]
-    zoom: 12 // starting zoom
-});
+  var carEnabledSrc = "img/transport_modes/car_enabled.png"
+  var carDisabledSrc = "img/transport_modes/car_disabled.png"
+  var transitEnabledSrc = "img/transport_modes/transit_enabled.png"
+  var transitDisabledSrc = "img/transport_modes/transit_disabled.png"
+  var bikeEnabledSrc = "img/transport_modes/bike_enabled.png"
+  var bikeDisabledSrc = "img/transport_modes/bike_disabled.png"
+  var walkEnabledSrc = "img/transport_modes/walk_enabled.png"
+  var walkDisabledSrc = "img/transport_modes/walk_disabled.png"
 
-if ("geolocation" in navigator) {
-  navigator.geolocation.getCurrentPosition(position => map.flyTo({center: [position.coords.longitude, position.coords.latitude]}));
-}
+  function modeClicked(e) {
+    console.log(e.target.id);
+    switch (e.target.id) {
+      case "carIcon":
+        carEnabled = !carEnabled;
+        e.target.src = carEnabled ? carEnabledSrc : carDisabledSrc;
+        break;
+      case "transitIcon":
+        transitEnabled = !transitEnabled;
+        e.target.src = transitEnabled ? transitEnabledSrc : transitDisabledSrc;
+        break;
+        case "bikeIcon":
+          bikeEnabled = !bikeEnabled;
+          e.target.src = bikeEnabled ? bikeEnabledSrc : bikeDisabledSrc;
+          break;
+        case "walkIcon":
+          walkEnabled = !walkEnabled;
+          e.target.src = walkEnabled ? walkEnabledSrc : walkDisabledSrc;
+          break;
+    }
+  }
 
-// map.on('load', function () {
-    // Center the map on the coordinates of any clicked symbol from the 'symbols' layer.
-    // map.on('click', 'symbols', function (e) {
-    //     map.flyTo({center: e.features[0].geometry.coordinates});
-    // });
+  var carIconElm = document.getElementById("carIcon");
+  carIconElm.addEventListener("click",e => modeClicked(e));
 
-    // // Change the cursor to a pointer when the it enters a feature in the 'symbols' layer.
-    // map.on('mouseenter', 'symbols', function () {
-    //     map.getCanvas().style.cursor = 'pointer';
-    // });
+  var transitIconElm = document.getElementById("transitIcon");
+  transitIconElm.addEventListener("click",e => modeClicked(e));
+
+  var bikeIconElm = document.getElementById("bikeIcon");
+  bikeIconElm.addEventListener("click",e => modeClicked(e));
+
+  var walkIconElm = document.getElementById("walkIcon");
+  walkIconElm.addEventListener("click",e => modeClicked(e));
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
+
+  var map = new mapboxgl.Map({
+      container: 'map', // container id
+      style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
+      center: [14.42076, 50.08804], // starting position [lng, lat]
+      zoom: 12 // starting zoom
+  });
+
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(position => map.flyTo({center: [position.coords.longitude, position.coords.latitude]}));
+  }
+
+  // function markerClicked(e) {
+    // document.body.style.cursor = "crosshair";
+
+    // if (e.target.src == "originMarker") {
+    //   document.body.style.cursor = "crosshair";
+    // } else {
     //
-    // // Change it back to a pointer when it leaves.
-    // map.on('mouseleave', 'symbols', function () {
-    //     map.getCanvas().style.cursor = '';
-    // });
+    // }
+  // }
+
+  // var originMarkerElm = document.getElementById("originMarker");
+  // originMarkerElm.addEventListener("click",e => markerClicked(e));
+
+  // var destinationMarkerElm = document.getElementById("destinationMarker");
+  // originMarkerElm.addEventListener("click",e => markerClicked(e));
+    function autoComplete(e) {
+      console.log("autoComplete activated");
+    }
 
 
-//     map.loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png', function(error, image) {
-//         if (error) throw error;
-//         map.addImage('cat', image);
-//         map.addLayer({
-//             "id": "points",
-//             "type": "symbol",
-//             "source": {
-//                 "type": "geojson",
-//                 "data": {
-//                     "type": "FeatureCollection",
-//                     "features": [{
-//                         "type": "Feature",
-//                         "geometry": {
-//                             "type": "Point",
-//                             "coordinates": [14.42076, 50.08804]
-//                         }
-//                     }]
-//                 }
-//             },
-//             "layout": {
-//                 "icon-image": "cat",
-//                 "icon-size": 0.25
-//             }
-//         });
-// });
-//
-// });
+    var inputBoxElements = document.querySelectorAll("#placeInput");
+    inputBoxElements.forEach(element => element.addEventListener("keypress", e => autoComplete(e)));
 
-</script>
 
-</body>
-</html>
+
+
+  // map.on('load', function () {
+      // Center the map on the coordinates of any clicked symbol from the 'symbols' layer.
+      // map.on('click', 'symbols', function (e) {
+      //     map.flyTo({center: e.features[0].geometry.coordinates});
+      // });
+
+      // // Change the cursor to a pointer when the it enters a feature in the 'symbols' layer.
+      // map.on('mouseenter', 'symbols', function () {
+      //     map.getCanvas().style.cursor = 'pointer';
+      // });
+      //
+      // // Change it back to a pointer when it leaves.
+      // map.on('mouseleave', 'symbols', function () {
+      //     map.getCanvas().style.cursor = '';
+      // });
+
+
+  //     map.loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png', function(error, image) {
+  //         if (error) throw error;
+  //         map.addImage('cat', image);
+  //         map.addLayer({
+  //             "id": "points",
+  //             "type": "symbol",
+  //             "source": {
+  //                 "type": "geojson",
+  //                 "data": {
+  //                     "type": "FeatureCollection",
+  //                     "features": [{
+  //                         "type": "Feature",
+  //                         "geometry": {
+  //                             "type": "Point",
+  //                             "coordinates": [14.42076, 50.08804]
+  //                         }
+  //                     }]
+  //                 }
+  //             },
+  //             "layout": {
+  //                 "icon-image": "cat",
+  //                 "icon-size": 0.25
+  //             }
+  //         });
+  // });
+  //
+  // });
+
+  </script>
+
+  </body>
+  </html>

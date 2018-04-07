@@ -4,6 +4,8 @@
       <meta charset='utf-8' />
       <title>Intermodal Planner</title>
       <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+      <link rel="stylesheet" href="libraries/awesomplete/awesomplete.css" />
+      <script src="libraries/awesomplete/awesomplete.js" async></script>
       <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
       <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
       <style>
@@ -71,7 +73,7 @@
         <tbody>
           <tr>
             <th>
-              <input id="placeInput" placeholder="Origin place"/>
+              <input id="originInput" placeholder="Origin place"/>
             </th>
             <th>
                 <img id="originMarker" src="img/markers/marker_origin.png" alt="" height=30 />
@@ -79,7 +81,17 @@
           </tr>
           <tr>
             <th>
-              <input id="placeInput" placeholder="Destination place"/>
+              <!-- <input id="placeInput" placeholder="Destination place"/> -->
+              <input id="destinationInput" />
+              <ul id="autocompleteList" hidden = true>
+              	<li>Ada</li>
+              	<li>Java</li>
+              	<li>JavaScript</li>
+              	<li>Brainfuck</li>
+              	<li>LOLCODE</li>
+              	<li>Node.js</li>
+              	<li>Ruby on Rails</li>
+              </ul>
             </th>
             <th>
               <img id="destMarker" src="img/markers/marker_destination.png" alt="" height=30 />
@@ -101,6 +113,9 @@
     </div>
   </div>
   <script>
+
+
+  var autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete?"
 
   var originMarkEnabled = false;
   var originPicked = false;
@@ -168,28 +183,23 @@
     navigator.geolocation.getCurrentPosition(position => map.flyTo({center: [position.coords.longitude, position.coords.latitude]}));
   }
 
-  // function markerClicked(e) {
-    // document.body.style.cursor = "crosshair";
-
-    // if (e.target.src == "originMarker") {
-    //   document.body.style.cursor = "crosshair";
-    // } else {
-    //
-    // }
-  // }
 
   // var originMarkerElm = document.getElementById("originMarker");
   // originMarkerElm.addEventListener("click",e => markerClicked(e));
 
   // var destinationMarkerElm = document.getElementById("destinationMarker");
   // originMarkerElm.addEventListener("click",e => markerClicked(e));
-    function autoComplete(e) {
-      console.log("autoComplete activated");
-    }
+  // function autoComplete(e) {
+  //     console.log("autoComplete activated");
+  //
+  //     fetch(autoCompleteURL)
+  //     .then(response => JSON.parse(response))
+  //     .then(json => showAutocompleteOptions(e,json))
+  //   }
 
 
-    var inputBoxElements = document.querySelectorAll("#placeInput");
-    inputBoxElements.forEach(element => element.addEventListener("keypress", e => autoComplete(e)));
+    // var inputBoxElements = document.querySelectorAll("#placeInput");
+    // inputBoxElements.forEach(element => element.addEventListener("keypress", e => autoComplete(e)));
 
 
 
@@ -238,6 +248,16 @@
   // });
   //
   // });
+
+  var langList = ["Ada", "Java", "JavaScript", "Ruby", "Swift"]
+
+  var originInput = document.getElementById("originInput");
+  var destinationInput = document.getElementById("destinationInput");
+
+  new Awesomplete(originInput, {list: langList});
+  new Awesomplete(destinationInput, {list: langList});
+
+
 
   </script>
 

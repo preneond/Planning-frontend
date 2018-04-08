@@ -5,7 +5,7 @@
       <title>Intermodal Planner</title>
       <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
       <link rel="stylesheet" href="libraries/awesomplete/awesomplete.css" />
-      <script src="libraries/awesomplete/awesomplete.js" async></script>
+      <script src="libraries/awesomplete/awesomplete.js"></script>
       <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
       <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
       <style>
@@ -60,6 +60,28 @@
             color: white;
             background-color: green;
           }
+
+          @keyframes shake {
+            10%, 90% {
+              transform: translate3d(-1px, 0, 0);
+            }
+
+            20%, 80% {
+              transform: translate3d(2px, 0, 0);
+            }
+
+            30%, 50%, 70% {
+              transform: translate3d(-4px, 0, 0);
+            }
+
+            40%, 60% {
+              transform: translate3d(4px, 0, 0);
+            }
+          }
+
+          .apply-shake {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+          }
       </style>
   </head>
   <body>
@@ -82,19 +104,10 @@
           <tr>
             <th>
               <!-- <input id="placeInput" placeholder="Destination place"/> -->
-              <input id="destinationInput" />
-              <ul id="autocompleteList" hidden = true>
-              	<li>Ada</li>
-              	<li>Java</li>
-              	<li>JavaScript</li>
-              	<li>Brainfuck</li>
-              	<li>LOLCODE</li>
-              	<li>Node.js</li>
-              	<li>Ruby on Rails</li>
-              </ul>
+              <input id="destinationInput" placeholder="Destination place"/>
             </th>
             <th>
-              <img id="destMarker" src="img/markers/marker_destination.png" alt="" height=30 />
+              <img id="destinationMarker" src="img/markers/marker_destination.png" alt="" height=30 />
             </th>
           </tr>
           <tr>
@@ -113,10 +126,6 @@
     </div>
   </div>
   <script>
-
-
-  var autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
-
   var originMarkEnabled = false;
   var originPicked = false;
   var destinationMarkEnabled = false;
@@ -136,20 +145,59 @@
   var walkEnabledSrc = "img/transport_modes/walk_enabled.png"
   var walkDisabledSrc = "img/transport_modes/walk_disabled.png"
 
+  var featureList = {};
+
+  var originIconElm = document.getElementById("originMarker");
+  originIconElm.addEventListener("animationend", e => {
+    e.target.classList.remove("apply-shake");
+  });
+
+  var destinationIconElm = document.getElementById("destinationMarker");
+  destinationIconElm.addEventListener("animationend", e => {
+    e.target.classList.remove("apply-shake");
+  });
+
+  var originMarkerElm = document.createElement('img');
+  originMarkerElm.style.height = "30px";
+  originMarkerElm.src = "img/markers/marker_origin.png";
+  var originMapMarker = new mapboxgl.Marker(originMarkerElm);
+
+  var destinationMarkerElm = document.createElement('img');
+  destinationMarkerElm.style.height = "30px";
+  destinationMarkerElm.src = "img/markers/marker_destination.png"
+  var destinationMapMarker = new mapboxgl.Marker(destinationMarkerElm);
+
+  var originComplete = new Awesomplete(originInput, {});
+  var destinationComplete = new Awesomplete(destinationInput, {});
+
+  var originInput = document.getElementById("originInput");
+  originInput.addEventListener('input', autoComplete);
+  originInput.addEventListener('keyup', function(e) {
+    if (e.keyCode === 13) inputDidConfirmed(e)
+  })
+
+  var destinationInput = document.getElementById("destinationInput");
+  destinationInput.addEventListener('input', autoComplete);
+  destinationInput.addEventListener('keyup', function(e) {
+    if (e.keyCode === 13) inputDidConfirmed(e)
+  })
+
   var carIconElm = document.getElementById("carIcon");
-  carIconElm.addEventListener("click",e => modeClicked(e));
+  carIconElm.addEventListener("click", modeClicked);
 
-  var transitIconElm = document.getElementById("transitIcon");
-  transitIconElm.addEventListener("click",e => modeClicked(e));
+  const transitIconElm = document.getElementById("transitIcon");
+  transitIconElm.addEventListener("click", modeClicked);
 
-  var bikeIconElm = document.getElementById("bikeIcon");
-  bikeIconElm.addEventListener("click",e => modeClicked(e));
+  const bikeIconElm = document.getElementById("bikeIcon");
+  bikeIconElm.addEventListener("click", modeClicked);
 
-  var walkIconElm = document.getElementById("walkIcon");
-  walkIconElm.addEventListener("click",e => modeClicked(e));
+  const walkIconElm = document.getElementById("walkIcon");
+  walkIconElm.addEventListener("click", modeClicked);
+
+  const planRouteBtnElm = document.getElementById("planRouteBtn")
+  planRouteBtnElm.addEventListener("click", planRoute);
 
   function modeClicked(e) {
-    console.log(e.target.id);
     switch (e.target.id) {
       case "carIcon":
         carEnabled = !carEnabled;
@@ -171,22 +219,97 @@
   }
 
   function autoComplete(e) {
-      var text = e.target.value
+      const text = e.target.value
       if (text.length < 2) return;
 
-      fetch(autoCompleteURL + "?text=" + text)
+      const centerCoords = map.getCenter();
+      const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
+
+      var reqURL = autoCompleteURL + "?text=" + text;
+      if (centerCoords != null) {
+          reqURL += "&focus.point.lat=" + centerCoords.lat;
+          reqURL += "&focus.point.lon=" + centerCoords.lng;
+      }
+
+      fetch(reqURL)
       .then(response => response.json())
       .then(json => autocompleteListDidChange(e,json));
     }
 
+    function reverseGeocoding(e) {
+      const reverseGeocodingURL = "https://uc1.umotional.net/geocoding/reverse"
+
+      var reqURL = reverseGeocodingURL
+      reqURL += "?point.lat=" + e.lngLat.lat
+      reqURL += "&point.lon=" + e.lngLat.lng;
+
+      fetch(reqURL)
+      .then(response => response.json())
+      .then(json => mapDidClicked(json));
+    }
+
     function autocompleteListDidChange(e, response) {
+      featureList = response.features;
       if (e.target.id == "originInput") {
-        originComplete.list = response.features.map(feature => feature.properties.label);
+        originComplete.list = featureList.map(feature => feature.properties.uc_label);
         originComplete.evaluate()
       } else {
-        destinationComplete.list = response.features.map(feature => feature.properties.label);
+        destinationComplete.list = featureList.map(feature => feature.properties.uc_label);
         destinationComplete.evaluate()
       }
+    }
+
+    function inputDidConfirmed(e) {
+      const inputText = e.target.value;
+      const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
+      const coords = feature.geometry.coordinates;
+      if (e.target.id == "originInput") {
+        pickOrigin(coords, inputText)
+      } else {
+        pickDestination(coords, inputText)
+
+      }
+      map.flyTo({center: coords});
+    }
+
+    function planRoute(e) {
+      if (!originPicked) {
+        originIconElm.classList.add("apply-shake");
+      }
+      if (!destinationPicked) {
+        destinationIconElm.classList.add("apply-shake");
+      }
+    }
+
+    function mapDidClicked(json) {
+      let feature = json.features[0]
+
+      let coords = feature.geometry.coordinates;
+      let label = feature.properties.uc_label
+
+      if (!originPicked) {
+        originInput.value = label
+        pickOrigin(coords);
+      } else if (!destinationPicked) {
+        destinationInput.value = label;
+        pickDestination(coords)
+      }
+    }
+
+    function pickOrigin(coordinates, text = "") {
+      originPicked = true
+      originMapMarker
+      .setLngLat(coordinates)
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(text))
+      .addTo(map);
+    }
+
+    function pickDestination(coordinates, text = "") {
+      destinationPicked = true
+      destinationMapMarker
+      .setLngLat(coordinates)
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(text))
+      .addTo(map);
     }
 
     mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
@@ -198,6 +321,8 @@
         zoom: 12 // starting zoom
     });
 
+    map.on('click', reverseGeocoding);
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(position => {
         var location = [position.coords.longitude, position.coords.latitude];
@@ -206,71 +331,6 @@
     } else {
       var location = [14.42076, 50.08804];
     }
-
-    var originInput = document.getElementById("originInput");
-    var destinationInput = document.getElementById("destinationInput");
-
-    originInput.addEventListener('input', e => autoComplete(e));
-
-    var originComplete = new Awesomplete(originInput, {});
-    var destinationComplete = new Awesomplete(destinationInput, {});
-
-    // var originMarkerElm = document.getElementById("originMarker");
-    // originMarkerElm.addEventListener("click",e => markerClicked(e));
-
-    // var destinationMarkerElm = document.getElementById("destinationMarker");
-    // originMarkerElm.addEventListener("click",e => markerClicked(e));
-
-
-  // map.on('load', function () {
-      // Center the map on the coordinates of any clicked symbol from the 'symbols' layer.
-      // map.on('click', 'symbols', function (e) {
-      //     map.flyTo({center: e.features[0].geometry.coordinates});
-      // });
-
-      // // Change the cursor to a pointer when the it enters a feature in the 'symbols' layer.
-      // map.on('mouseenter', 'symbols', function () {
-      //     map.getCanvas().style.cursor = 'pointer';
-      // });
-      //
-      // // Change it back to a pointer when it leaves.
-      // map.on('mouseleave', 'symbols', function () {
-      //     map.getCanvas().style.cursor = '';
-      // });
-
-
-  //     map.loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png', function(error, image) {
-  //         if (error) throw error;
-  //         map.addImage('cat', image);
-  //         map.addLayer({
-  //             "id": "points",
-  //             "type": "symbol",
-  //             "source": {
-  //                 "type": "geojson",
-  //                 "data": {
-  //                     "type": "FeatureCollection",
-  //                     "features": [{
-  //                         "type": "Feature",
-  //                         "geometry": {
-  //                             "type": "Point",
-  //                             "coordinates": [14.42076, 50.08804]
-  //                         }
-  //                     }]
-  //                 }
-  //             },
-  //             "layout": {
-  //                 "icon-image": "cat",
-  //                 "icon-size": 0.25
-  //             }
-  //         });
-  // });
-  //
-  // });
-
-
-
-  // console.log(originComplete._list);
-
   </script>
 
   </body>

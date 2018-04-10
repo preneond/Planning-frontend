@@ -163,12 +163,15 @@
 	    originInput.addEventListener('keyup', function(e) {
 	      if (e.keyCode === 13) inputDidConfirmed(e)
 	    })
+      // Awesomplete.$.bind(originInput, { "awesomplete-select":e => inputDidConfirmed(e)})
+
 
 	    var destinationInput = document.getElementById("destinationInput");
 	    destinationInput.addEventListener('input', autoComplete);
 	    destinationInput.addEventListener('keyup', function(e) {
 	      if (e.keyCode === 13) inputDidConfirmed(e)
 	    })
+      // Awesomplete.$.bind(destinationInput, { "awesomplete-select":e => inputDidConfirmed(e)})
 
 	    var carIconElm = document.getElementById("carIcon");
 	    carIconElm.addEventListener("click", modeClicked);
@@ -224,7 +227,17 @@
 	        .then(json => autocompleteListDidChange(e,json));
 	      }
 
-	      function reverseGeocoding(e) {
+        function mapDidClicked(e) {
+          if (!originPicked) {
+            pickOrigin([e.lngLat.lng, e.lngLat.lat])
+            reverseGeocoding(e,"origin")
+          } else if (!destinationPicked) {
+            pickDestination([e.lngLat.lng, e.lngLat.lat])
+            reverseGeocoding(e,"destination")
+        }
+      }
+
+	      function reverseGeocoding(e, target) {
 	        const reverseGeocodingURL = "https://uc1.umotional.net/geocoding/reverse"
 
 	        var reqURL = reverseGeocodingURL
@@ -233,7 +246,7 @@
 
 	        fetch(reqURL)
 	        .then(response => response.json())
-	        .then(json => mapDidClicked(json));
+	        .then(json => reverseGeocodingDidCalled(json,target));
 	      }
 
 	      function autocompleteListDidChange(e, response) {
@@ -257,30 +270,29 @@
 	          pickDestination(coords, inputText)
 
 	        }
-	        map.flyTo({center: coords});
+	        // map.flyTo({center: coords});
+          map.panTo(coords)
 	      }
 
 	      function planRoute(e) {
-	        if (!originPicked) {
-	          originIconElm.classList.add("apply-shake");
+	        if (!originPicked || !destinationPicked) {
+            if (!originPicked) destinationIconElm.classList.add("apply-shake");
+	          if (!destinationPicked) originIconElm.classList.add("apply-shake");
+            return
 	        }
-	        if (!destinationPicked) {
-	          destinationIconElm.classList.add("apply-shake");
-	        }
+          planning
 	      }
 
-	      function mapDidClicked(json) {
+	      function reverseGeocodingDidCalled(json, target) {
 	        let feature = json.features[0]
 
 	        let coords = feature.geometry.coordinates;
 	        let label = feature.properties.uc_label
 
-	        if (!originPicked) {
+	        if (target == "origin") {
 	          originInput.value = label
-	          pickOrigin(coords);
-	        } else if (!destinationPicked) {
+	        } else if (target == "destination") {
 	          destinationInput.value = label;
-	          pickDestination(coords)
 	        }
 	      }
 
@@ -315,23 +327,28 @@
 	    };
 
 	      function pickOrigin(coordinates, text = "") {
-        console.log("Pick origin");
         originPicked = true
 	      originMarkerSrc.data.features[0].geometry.coordinates = coordinates;
 
-	      map.addSource('originMarkerSource', originMarkerSrc);
 
-	      map.addLayer({
-	        "id": "originMarkerLayer",
-	        "type": "circle",
-	        "source": "originMarkerSource",
-	        "paint": {
-	           "circle-radius": 10,
-	           "circle-color": "#3887be"
-	       }
-	  });
+        if (map.getSource('originMarkerSource') == undefined) {
+          map.addSource('originMarkerSource', originMarkerSrc);
 
-	  map.panTo(coordinates);
+  	      map.addLayer({
+  	        "id": "originMarkerLayer",
+  	        "type": "circle",
+  	        "source": "originMarkerSource",
+  	        "paint": {
+  	           "circle-radius": 10,
+  	           "circle-color": "#3887be"
+  	       }
+        });
+      } else {
+        map.getSource('originMarkerSource').setData(originMarkerSrc.data)
+      }
+
+
+	  // map.panTo(coordinates);
 
 	  // When the cursor enters a feature in the point layer, prepare for dragging.
 	  map.on('mouseenter', 'originMarkerLayer', function() {
@@ -356,24 +373,26 @@
 
 
 	      function pickDestination(coordinates, text = "") {
-          console.log("Pick destination");
          destinationPicked = true
-
 	      destinationMarkerSrc.data.features[0].geometry.coordinates = coordinates;
 
-	      map.addSource('destinationMarkerSource', destinationMarkerSrc);
+        if (map.getSource('destinationMarkerSource') == undefined) {
+          map.addSource('destinationMarkerSource', destinationMarkerSrc);
 
-	      map.addLayer({
-	        "id": "destinationMarkerLayer",
-	        "type": "circle",
-	        "source": "destinationMarkerSource",
-	        "paint": {
-	           "circle-radius": 10,
-	           "circle-color": "#3887be"
-	       }
-	  });
+         map.addLayer({
+           "id": "destinationMarkerLayer",
+           "type": "circle",
+           "source": "destinationMarkerSource",
+           "paint": {
+              "circle-radius": 10,
+              "circle-color": "#3887be"
+          }
+        });
+      } else {
+        map.getSource('destinationMarkerSource').setData(destinationMarkerSrc.data)
+      }
 
-	  map.panTo(coordinates);
+	  // map.panTo(coordinates);
 
 	  // When the cursor enters a feature in the point layer, prepare for dragging.
 	  map.on('mouseenter', 'destinationMarkerLayer', function() {
@@ -410,7 +429,7 @@
 	          zoom: 12 // starting zoom
 	      });
 
-	      map.on('click', reverseGeocoding);
+	      map.on('click', mapDidClicked);
 
 
 
@@ -447,8 +466,8 @@
           destinationDown = true
         }
 	       // Mouse events
-	        map.on('mousemove', e => onMove(e));
-	        map.on('mouseup', e => onUp(e));
+         map.on('mousemove', e => onMove(e));
+         map.on('mouseup', e => onUp(e));
 	}
 
 	function onMove(e) {
@@ -467,15 +486,21 @@
 	   }
 	}
 
-	function onUp(e,src) {
+	function onUp(e) {
 	   if (!isDragging) return;
 	   var coords = e.lngLat;
 
-     if (src == "originMarkerLayer") {
+     if (originDown) {
+       reverseGeocoding(e,"origin")
        originDown = false;
      } else {
+       reverseGeocoding(e,"destination")
        destinationDown = false;
      }
+
+     // console.log("On up event");
+     // console.log(e);
+     // mapDidClicked(e)
 
 	   // Print the coordinates of where the point had
 	   // finished being dragged to on the map.

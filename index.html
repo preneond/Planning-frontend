@@ -261,26 +261,35 @@
 	      }
 
 	      function inputDidConfirmed(e) {
-	        const inputText = e.target.value;
-	        const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
-	        const coords = feature.geometry.coordinates;
-	        if (e.target.id == "originInput") {
-	          pickOrigin(coords, inputText)
-	        } else {
-	          pickDestination(coords, inputText)
+					const inputText = e.target.value;
+					const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
 
-	        }
-	        // map.flyTo({center: coords});
-          map.panTo(coords)
+					if (feature == undefined) {
+						console.log(e);
+						if (e.target.id == "originInput") {
+		          unpickOrigin(e)
+		        } else {
+		          unpickDestination(e)
+		        }
+					} else {
+						const coords = feature.geometry.coordinates;
+						if (e.target.id == "originInput") {
+	          	pickOrigin(coords, inputText)
+	        	} else {
+	          	pickDestination(coords, inputText)
+	        	}
+	        	// map.flyTo({center: coords});
+          	map.panTo(coords)
+					}
 	      }
 
 	      function planRoute(e) {
 	        if (!originPicked || !destinationPicked) {
-            if (!originPicked) destinationIconElm.classList.add("apply-shake");
-	          if (!destinationPicked) originIconElm.classList.add("apply-shake");
+            if (!originPicked) originIconElm.classList.add("apply-shake");
+	          if (!destinationPicked) destinationIconElm.classList.add("apply-shake");
             return
 	        }
-          planning
+
 	      }
 
 	      function reverseGeocodingDidCalled(json, target) {
@@ -340,7 +349,7 @@
   	        "source": "originMarkerSource",
   	        "paint": {
   	           "circle-radius": 10,
-  	           "circle-color": "#3887be"
+  	           "circle-color": "#487f1e"
   	       }
         });
       } else {
@@ -353,13 +362,15 @@
 	  // When the cursor enters a feature in the point layer, prepare for dragging.
 	  map.on('mouseenter', 'originMarkerLayer', function() {
 	      map.setPaintProperty('originMarkerLayer', 'circle-color', '#3bb2d0');
+				map.setPaintProperty('originMarkerLayer', 'circle-radius', 15);
 	      canvas.style.cursor = 'move';
 	      isCursorOverPoint = true;
 	      map.dragPan.disable();
 	  });
 
 	  map.on('mouseleave', 'originMarkerLayer', function() {
-	      map.setPaintProperty('originMarkerLayer', 'circle-color', '#3887be');
+	      map.setPaintProperty('originMarkerLayer', 'circle-color', '#487f1e');
+				map.setPaintProperty('originMarkerLayer', 'circle-radius', 10);
 	      canvas.style.cursor = '';
 	      isCursorOverPoint = false;
 	      map.dragPan.enable();
@@ -369,6 +380,23 @@
 	     mouseDown("originMarkerLayer")
 	   });
 
+	 }
+
+	 function unpickOrigin() {
+		 console.log("unpick origin");
+		 if (map.getSource('originMarkerSource') != undefined) {
+			 originPicked = false
+			 map.removeLayer('originMarkerLayer')
+			 map.removeSource('originMarkerSource')
+		 }
+	 }
+	 function unpickDestination() {
+		 console.log("unpick destination");
+  		 if (map.getSource('destinationMarkerSource') != undefined) {
+				 destinationPicked = false
+  			 map.removeLayer('destinationMarkerLayer')
+				 map.removeSource('destinationMarkerSource')
+  		 }
 	 }
 
 
@@ -385,7 +413,7 @@
            "source": "destinationMarkerSource",
            "paint": {
               "circle-radius": 10,
-              "circle-color": "#3887be"
+              "circle-color": "#d90509"
           }
         });
       } else {
@@ -397,13 +425,15 @@
 	  // When the cursor enters a feature in the point layer, prepare for dragging.
 	  map.on('mouseenter', 'destinationMarkerLayer', function() {
 	      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#3bb2d0');
+				map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 15);
 	      canvas.style.cursor = 'move';
 	      isCursorOverPoint = true;
 	      map.dragPan.disable();
 	  });
 
 	  map.on('mouseleave', 'destinationMarkerLayer', function() {
-	      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#3887be');
+	      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#d90509');
+				map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 10);
 	      canvas.style.cursor = '';
 	      isCursorOverPoint = false;
 	      map.dragPan.enable();

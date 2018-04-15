@@ -1,545 +1,577 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset='utf-8'>
-	<title>Intermodal Planner</title>
-	<meta content='initial-scale=1,maximum-scale=1,user-scalable=no' name='viewport'>
-	<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
-	<script src="libraries/awesomplete/awesomplete.js">
-	</script>
-	<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'>
-	</script>
-	<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet'><!-- <script src='https://api.mapbox.com/mapbox.js/v3.0.1/mapbox.js'></script> -->
-	<!-- <link href='https://api.mapbox.com/mapbox.js/v3.0.1/mapbox.css' rel='stylesheet' /> -->
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>Intermodal Planner</title>
+		<meta content='initial-scale=1,maximum-scale=1,user-scalable=no' name='viewport'>
+		<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
+		<script src="libraries/awesomplete/awesomplete.js"></script>
+		<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'>
+		</script>
+		<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet'><!-- <script src='https://api.mapbox.com/mapbox.js/v3.0.1/mapbox.js'></script> -->
+		<!-- <link href='https://api.mapbox.com/mapbox.js/v3.0.1/mapbox.css' rel='stylesheet' /> -->
 
-	<style>
-	            body {
-	              margin:0;
-	              padding:0;
-	            }
-	            img {
-	              margin-right: 20px;
-	            }
-	            #map {
-	              position:absolute;
-	              top:0;
-	              bottom:0;
-	              width:100%;
-	            }
-	            #search-box {
-	              position:absolute;
-	              margin:50px 50px 50px 50px;
-	              padding: 10px 10px 10px 10px;
-	              width: 400px;
-	              height:150px;
-	              background-color: white;
-	              border-radius: 15px;
-	              background: rgba(255,255,255,0.9);
-	            }
-	            #search-table {
-	              position: relative;
-	              width: 90%;
-	              height: 100%;
-	            }
-	            #search-table tr {
-	              position: relative;
-	              height: 50px;
-	              width: 200px;
-	            }
-	            #search-table input {
-	              position: relative;
-	              width: 80%;
-	              height: 80%;
-	              font-size: 14px;
-	            }
+		<style>
+		            body {
+		              margin:0;
+		              padding:0;
+		            }
+		            img {
+		              margin-right: 20px;
+		            }
+		            #map {
+		              position:absolute;
+		              top:0;
+		              bottom:0;
+		              width:100%;
+		            }
+		            #search-box {
+		              position:absolute;
+		              margin:50px 50px 50px 50px;
+		              padding: 10px 10px 10px 10px;
+		              width: 400px;
+		              height:150px;
+		              background-color: white;
+		              border-radius: 15px;
+		              background: rgba(255,255,255,0.9);
+		            }
+		            #search-table {
+		              position: relative;
+		              width: 90%;
+		              height: 100%;
+		            }
+		            #search-table tr {
+		              position: relative;
+		              height: 50px;
+		              width: 200px;
+		            }
+		            #search-table input {
+		              position: relative;
+		              width: 80%;
+		              height: 80%;
+		              font-size: 14px;
+		            }
 
-	            #search-table button {
-	              position: relative;
-	              width: 100%;
-	              height: 80%;
-	              font-size: 14px;
-	            }
-	            #planRouteBtn {
-	              border: none;
-	              color: white;
-	              background-color: green;
-	            }
+		            #search-table button {
+		              position: relative;
+		              width: 100%;
+		              height: 80%;
+		              font-size: 14px;
+		            }
+		            #planRouteBtn {
+		              border: none;
+		              color: white;
+		              background-color: green;
+		            }
 
-	            @keyframes shake {
-	              10%, 90% {
-	                transform: translate3d(-1px, 0, 0);
-	              }
+		            @keyframes shake {
+		              10%, 90% {
+		                transform: translate3d(-1px, 0, 0);
+		              }
 
-	              20%, 80% {
-	                transform: translate3d(2px, 0, 0);
-	              }
+		              20%, 80% {
+		                transform: translate3d(2px, 0, 0);
+		              }
 
-	              30%, 50%, 70% {
-	                transform: translate3d(-4px, 0, 0);
-	              }
+		              30%, 50%, 70% {
+		                transform: translate3d(-4px, 0, 0);
+		              }
 
-	              40%, 60% {
-	                transform: translate3d(4px, 0, 0);
-	              }
-	            }
+		              40%, 60% {
+		                transform: translate3d(4px, 0, 0);
+		              }
+		            }
 
-	            .apply-shake {
-	              animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-	            }
-	</style>
-</head>
-<body>
-	<div id='map'></div>
-	<div id="search-box">
-		<div id="search-input">
-			<table id="search-table">
-				<tbody>
-					<tr>
-						<th><input id="originInput" placeholder="Origin place"></th>
-						<th><img alt="" height="30" id="originMarker" src="img/markers/marker_origin.png"></th>
-					</tr>
-					<tr>
-						<th><!-- <input id="placeInput" placeholder="Destination place"/> -->
-						<input id="destinationInput" placeholder="Destination place"></th>
-						<th><img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.png"></th>
-					</tr>
-					<tr>
-						<th><img alt="" height="25" id="carIcon" src="img/transport_modes/car_enabled.png"> <img alt="" height="25" id="transitIcon" src="img/transport_modes/transit_enabled.png"> <img alt="" height="25" id="bikeIcon" src="img/transport_modes/bike_enabled.png"> <img alt="" height="25" id="walkIcon" src="img/transport_modes/walk_enabled.png"></th>
-						<th><button id="planRouteBtn">Find</button></th>
-					</tr>
-				</tbody>
-			</table>
+		            .apply-shake {
+		              animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+		            }
+		</style>
+	</head>
+	<body>
+		<div id='map'></div>
+		<div id="search-box">
+			<div id="search-input">
+				<table id="search-table">
+					<tbody>
+						<tr>
+							<th><input id="originInput" placeholder="Origin place"></th>
+							<th><img alt="" height="30" id="originMarker" src="img/markers/marker_origin.png"></th>
+						</tr>
+						<tr>
+							<th><!-- <input id="placeInput" placeholder="Destination place"/> -->
+							<input id="destinationInput" placeholder="Destination place"></th>
+							<th><img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.png"></th>
+						</tr>
+						<tr>
+							<th><img alt="" height="25" id="carIcon" src="img/transport_modes/car_enabled.png"> <img alt="" height="25" id="transitIcon" src="img/transport_modes/transit_enabled.png"> <img alt="" height="25" id="bikeIcon" src="img/transport_modes/bike_enabled.png"> <img alt="" height="25" id="walkIcon" src="img/transport_modes/walk_enabled.png"></th>
+							<th><button id="planRouteBtn">Find</button></th>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
-	</div>
-	<script>
-	    var originMarkEnabled = false;
-	    var originPicked = false;
-	    var destinationMarkEnabled = false;
-	    var destinationPicked = false;
+		<script>
+		    var originMarkEnabled = false;
+		    var originPicked = false;
+		    var destinationMarkEnabled = false;
+		    var destinationPicked = false;
 
-	    var carEnabled = true;
-	    var transitEnabled = true;
-	    var bikeEnabled = true;
-	    var walkEnabled = true;
+		    var carEnabled = true;
+		    var transitEnabled = true;
+		    var bikeEnabled = true;
+		    var walkEnabled = true;
 
-	    var carEnabledSrc = "img/transport_modes/car_enabled.png"
-	    var carDisabledSrc = "img/transport_modes/car_disabled.png"
-	    var transitEnabledSrc = "img/transport_modes/transit_enabled.png"
-	    var transitDisabledSrc = "img/transport_modes/transit_disabled.png"
-	    var bikeEnabledSrc = "img/transport_modes/bike_enabled.png"
-	    var bikeDisabledSrc = "img/transport_modes/bike_disabled.png"
-	    var walkEnabledSrc = "img/transport_modes/walk_enabled.png"
-	    var walkDisabledSrc = "img/transport_modes/walk_disabled.png"
+		    var carEnabledSrc = "img/transport_modes/car_enabled.png"
+		    var carDisabledSrc = "img/transport_modes/car_disabled.png"
+		    var transitEnabledSrc = "img/transport_modes/transit_enabled.png"
+		    var transitDisabledSrc = "img/transport_modes/transit_disabled.png"
+		    var bikeEnabledSrc = "img/transport_modes/bike_enabled.png"
+		    var bikeDisabledSrc = "img/transport_modes/bike_disabled.png"
+		    var walkEnabledSrc = "img/transport_modes/walk_enabled.png"
+		    var walkDisabledSrc = "img/transport_modes/walk_disabled.png"
 
-	    var featureList = {};
+		    var featureList = {};
 
-	    var originIconElm = document.getElementById("originMarker");
-	    originIconElm.addEventListener("animationend", e => {
-	      e.target.classList.remove("apply-shake");
-	    });
+		    var originIconElm = document.getElementById("originMarker");
+		    originIconElm.addEventListener("animationend", e => {
+		      e.target.classList.remove("apply-shake");
+		    });
 
-	    var destinationIconElm = document.getElementById("destinationMarker");
-	    destinationIconElm.addEventListener("animationend", e => {
-	      e.target.classList.remove("apply-shake");
-	    });
+		    var destinationIconElm = document.getElementById("destinationMarker");
+		    destinationIconElm.addEventListener("animationend", e => {
+		      e.target.classList.remove("apply-shake");
+		    });
 
-	    // var originMarkerElm = document.createElement('img');
-	    // originMarkerElm.style.height = "30px";
-	    // originMarkerElm.src = "img/markers/marker_origin.png";
-	    // var originMapMarker = new mapboxgl.Marker(originMarkerElm);
-
+		    // var originMarkerElm = document.createElement('img');
+		    // originMarkerElm.style.height = "30px";
+		    // originMarkerElm.src = "img/markers/marker_origin.png";
+		    // var originMapMarker = new mapboxgl.Marker(originMarkerElm);
 
 
-	    // var destinationMarkerElm = document.createElement('img');
-	    // destinationMarkerElm.style.height = "30px";
-	    // destinationMarkerElm.src = "img/markers/marker_destination.png"
-	    // var destinationMapMarker = new mapboxgl.Marker(destinationMarkerElm, {draggable: true});
 
-	    var originComplete = new Awesomplete(originInput, {});
-	    var destinationComplete = new Awesomplete(destinationInput, {});
+		    // var destinationMarkerElm = document.createElement('img');
+		    // destinationMarkerElm.style.height = "30px";
+		    // destinationMarkerElm.src = "img/markers/marker_destination.png"
+		    // var destinationMapMarker = new mapboxgl.Marker(destinationMarkerElm, {draggable: true});
 
-	    var originInput = document.getElementById("originInput");
-	    originInput.addEventListener('input', autoComplete);
-	    originInput.addEventListener('keyup', function(e) {
-	      if (e.keyCode === 13) inputDidConfirmed(e)
-	    })
-      // Awesomplete.$.bind(originInput, { "awesomplete-select":e => inputDidConfirmed(e)})
+		    // var originComplete = new Awesomplete(originInput, {});
+		    // var destinationComplete = new Awesomplete(destinationInput, {});
+
+		    var originInput = document.getElementById("originInput");
+		    originInput.addEventListener('input', autoComplete);
+		    originInput.addEventListener('keyup', function(e) {
+		      if (e.keyCode === 13) inputDidConfirmed(e)
+		    })
+	      // Awesomplete.$.bind(originInput, { "awesomplete-select":e => inputDidConfirmed(e)})
 
 
-	    var destinationInput = document.getElementById("destinationInput");
-	    destinationInput.addEventListener('input', autoComplete);
-	    destinationInput.addEventListener('keyup', function(e) {
-	      if (e.keyCode === 13) inputDidConfirmed(e)
-	    })
-      // Awesomplete.$.bind(destinationInput, { "awesomplete-select":e => inputDidConfirmed(e)})
+		    var destinationInput = document.getElementById("destinationInput");
+		    destinationInput.addEventListener('input', autoComplete);
+		    destinationInput.addEventListener('keyup', function(e) {
+		      if (e.keyCode === 13) inputDidConfirmed(e)
+		    })
+	      // Awesomplete.$.bind(destinationInput, { "awesomplete-select":e => inputDidConfirmed(e)})
 
-	    var carIconElm = document.getElementById("carIcon");
-	    carIconElm.addEventListener("click", modeClicked);
+		    var carIconElm = document.getElementById("carIcon");
+		    carIconElm.addEventListener("click", modeClicked);
 
-	    const transitIconElm = document.getElementById("transitIcon");
-	    transitIconElm.addEventListener("click", modeClicked);
+		    const transitIconElm = document.getElementById("transitIcon");
+		    transitIconElm.addEventListener("click", modeClicked);
 
-	    const bikeIconElm = document.getElementById("bikeIcon");
-	    bikeIconElm.addEventListener("click", modeClicked);
+		    const bikeIconElm = document.getElementById("bikeIcon");
+		    bikeIconElm.addEventListener("click", modeClicked);
 
-	    const walkIconElm = document.getElementById("walkIcon");
-	    walkIconElm.addEventListener("click", modeClicked);
+		    const walkIconElm = document.getElementById("walkIcon");
+		    walkIconElm.addEventListener("click", modeClicked);
 
-	    const planRouteBtnElm = document.getElementById("planRouteBtn")
-	    planRouteBtnElm.addEventListener("click", planRoute);
+		    const planRouteBtnElm = document.getElementById("planRouteBtn")
+		    planRouteBtnElm.addEventListener("click", planRoute);
 
-	    function modeClicked(e) {
-	      switch (e.target.id) {
-	        case "carIcon":
-	          carEnabled = !carEnabled;
-	          e.target.src = carEnabled ? carEnabledSrc : carDisabledSrc;
-	          break;
-	        case "transitIcon":
-	          transitEnabled = !transitEnabled;
-	          e.target.src = transitEnabled ? transitEnabledSrc : transitDisabledSrc;
-	          break;
-	          case "bikeIcon":
-	            bikeEnabled = !bikeEnabled;
-	            e.target.src = bikeEnabled ? bikeEnabledSrc : bikeDisabledSrc;
-	            break;
-	          case "walkIcon":
-	            walkEnabled = !walkEnabled;
-	            e.target.src = walkEnabled ? walkEnabledSrc : walkDisabledSrc;
-	            break;
-	      }
-	    }
+		    function modeClicked(e) {
+		      switch (e.target.id) {
+		        case "carIcon":
+		          carEnabled = !carEnabled;
+		          e.target.src = carEnabled ? carEnabledSrc : carDisabledSrc;
+		          break;
+		        case "transitIcon":
+		          transitEnabled = !transitEnabled;
+		          e.target.src = transitEnabled ? transitEnabledSrc : transitDisabledSrc;
+		          break;
+		          case "bikeIcon":
+		            bikeEnabled = !bikeEnabled;
+		            e.target.src = bikeEnabled ? bikeEnabledSrc : bikeDisabledSrc;
+		            break;
+		          case "walkIcon":
+		            walkEnabled = !walkEnabled;
+		            e.target.src = walkEnabled ? walkEnabledSrc : walkDisabledSrc;
+		            break;
+		      }
+		    }
 
-	    function autoComplete(e) {
-	        const text = e.target.value
-	        if (text.length < 2) return;
+		    function autoComplete(e) {
+		        const text = e.target.value
+		        if (text.length < 2) return;
 
-	        const centerCoords = map.getCenter();
-	        const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
+		        const centerCoords = map.getCenter();
+		        const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
 
-	        var reqURL = autoCompleteURL + "?text=" + text;
-	        if (centerCoords != null) {
-	            reqURL += "&focus.point.lat=" + centerCoords.lat;
-	            reqURL += "&focus.point.lon=" + centerCoords.lng;
-	        }
-
-	        fetch(reqURL)
-	        .then(response => response.json())
-	        .then(json => autocompleteListDidChange(e,json));
-	      }
-
-        function mapDidClicked(e) {
-          if (!originPicked) {
-            pickOrigin([e.lngLat.lng, e.lngLat.lat])
-            reverseGeocoding(e,"origin")
-          } else if (!destinationPicked) {
-            pickDestination([e.lngLat.lng, e.lngLat.lat])
-            reverseGeocoding(e,"destination")
-        }
-      }
-
-	      function reverseGeocoding(e, target) {
-	        const reverseGeocodingURL = "https://uc1.umotional.net/geocoding/reverse"
-
-	        var reqURL = reverseGeocodingURL
-	        reqURL += "?point.lat=" + e.lngLat.lat
-	        reqURL += "&point.lon=" + e.lngLat.lng;
-
-	        fetch(reqURL)
-	        .then(response => response.json())
-	        .then(json => reverseGeocodingDidCalled(json,target));
-	      }
-
-	      function autocompleteListDidChange(e, response) {
-	        featureList = response.features;
-	        if (e.target.id == "originInput") {
-	          originComplete.list = featureList.map(feature => feature.properties.uc_label);
-	          originComplete.evaluate()
-	        } else {
-	          destinationComplete.list = featureList.map(feature => feature.properties.uc_label);
-	          destinationComplete.evaluate()
-	        }
-	      }
-
-	      function inputDidConfirmed(e) {
-					const inputText = e.target.value;
-					const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
-
-					if (feature == undefined) {
-						console.log(e);
-						if (e.target.id == "originInput") {
-		          unpickOrigin(e)
-		        } else {
-		          unpickDestination(e)
+		        var reqURL = autoCompleteURL + "?text=" + text;
+		        if (centerCoords != null) {
+		            reqURL += "&focus.point.lat=" + centerCoords.lat;
+		            reqURL += "&focus.point.lon=" + centerCoords.lng;
 		        }
-					} else {
-						const coords = feature.geometry.coordinates;
-						if (e.target.id == "originInput") {
-	          	pickOrigin(coords, inputText)
-	        	} else {
-	          	pickDestination(coords, inputText)
-	        	}
-	        	// map.flyTo({center: coords});
-          	map.panTo(coords)
-					}
-	      }
 
-	      function planRoute(e) {
-	        if (!originPicked || !destinationPicked) {
-            if (!originPicked) originIconElm.classList.add("apply-shake");
-	          if (!destinationPicked) destinationIconElm.classList.add("apply-shake");
-            return
-	        }
+		        fetch(reqURL)
+		        .then(response => response.json())
+		        .then(json => autocompleteListDidChange(e,json));
+		      }
 
-	      }
-
-	      function reverseGeocodingDidCalled(json, target) {
-	        let feature = json.features[0]
-
-	        let coords = feature.geometry.coordinates;
-	        let label = feature.properties.uc_label
-
-	        if (target == "origin") {
-	          originInput.value = label
-	        } else if (target == "destination") {
-	          destinationInput.value = label;
+	        function mapDidClicked(e) {
+	          if (!originPicked) {
+	            pickOrigin([e.lngLat.lng, e.lngLat.lat])
+	            reverseGeocoding(e,"origin")
+	          } else if (!destinationPicked) {
+	            pickDestination([e.lngLat.lng, e.lngLat.lat])
+	            reverseGeocoding(e,"destination")
 	        }
 	      }
 
-	    var originMarkerSrc = {
-	      "type": "geojson",
-	      "data": {
-	           "type": "FeatureCollection",
-	           "features": [
-	             {
-	               "type": "Feature",
-	               "geometry": {
-	                 "type": "Point",
-	                 "coordinates": [0,0]
-	             }
-	           }
-	         ]}
-	    };
+		      function reverseGeocoding(e, target) {
+		        const reverseGeocodingURL = "https://uc1.umotional.net/geocoding/reverse"
 
-	    var destinationMarkerSrc = {
-	      "type": "geojson",
-	      "data": {
-	           "type": "FeatureCollection",
-	           "features": [
-	             {
-	               "type": "Feature",
-	               "geometry": {
-	                 "type": "Point",
-	                 "coordinates": [0,0]
-	             }
-	           }
-	         ]}
-	    };
+		        var reqURL = reverseGeocodingURL
+		        reqURL += "?point.lat=" + e.lngLat.lat
+		        reqURL += "&point.lon=" + e.lngLat.lng;
 
-	      function pickOrigin(coordinates, text = "") {
-        originPicked = true
-	      originMarkerSrc.data.features[0].geometry.coordinates = coordinates;
+		        fetch(reqURL)
+		        .then(response => response.json())
+		        .then(json => reverseGeocodingDidCalled(json,target));
+		      }
 
+		      function autocompleteListDidChange(e, response) {
+		        featureList = response.features;
+		        if (e.target.id == "originInput") {
+		          originComplete.list = featureList.map(feature => feature.properties.uc_label);
+		          originComplete.evaluate()
+		        } else {
+		          destinationComplete.list = featureList.map(feature => feature.properties.uc_label);
+		          destinationComplete.evaluate()
+		        }
+		      }
 
-        if (map.getSource('originMarkerSource') == undefined) {
-          map.addSource('originMarkerSource', originMarkerSrc);
+		      function inputDidConfirmed(e) {
+						const inputText = e.target.value;
+						const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
 
-  	      map.addLayer({
-  	        "id": "originMarkerLayer",
-  	        "type": "circle",
-  	        "source": "originMarkerSource",
-  	        "paint": {
-  	           "circle-radius": 10,
-  	           "circle-color": "#487f1e"
-  	       }
-        });
-      } else {
-        map.getSource('originMarkerSource').setData(originMarkerSrc.data)
-      }
+						if (feature == undefined) {
+							console.log(e);
+							if (e.target.id == "originInput") {
+			          unpickOrigin(e)
+			        } else {
+			          unpickDestination(e)
+			        }
+						} else {
+							const coords = feature.geometry.coordinates;
+							if (e.target.id == "originInput") {
+		          	pickOrigin(coords, inputText)
+		        	} else {
+		          	pickDestination(coords, inputText)
+		        	}
+		        	// map.flyTo({center: coords});
+	          	map.panTo(coords)
+						}
+		      }
 
+		      function planRoute(e) {
+		        if (!originPicked || !destinationPicked) {
+	            if (!originPicked) originIconElm.classList.add("apply-shake");
+		          if (!destinationPicked) destinationIconElm.classList.add("apply-shake");
+	            return
+		        }
+						const originCoords = map.getSource('originMarkerSource')._data.features[0].geometry.coordinates
+						const destinationCoords = map.getSource('destinationMarkerSource')._data.features[0].geometry.coordinates
 
-	  // map.panTo(coordinates);
+						console.log(originCoords);
 
-	  // When the cursor enters a feature in the point layer, prepare for dragging.
-	  map.on('mouseenter', 'originMarkerLayer', function() {
-	      map.setPaintProperty('originMarkerLayer', 'circle-color', '#3bb2d0');
-				map.setPaintProperty('originMarkerLayer', 'circle-radius', 15);
-	      canvas.style.cursor = 'move';
-	      isCursorOverPoint = true;
-	      map.dragPan.disable();
-	  });
+						var planURL = "http://127.0.0.1:8080/api/getIntermodalRoute"
+						planURL += "?origin=" + originCoords[1] + "," + originCoords[0]
+						planURL += "&destination=" + destinationCoords[1] + "," + destinationCoords[0]
 
-	  map.on('mouseleave', 'originMarkerLayer', function() {
-	      map.setPaintProperty('originMarkerLayer', 'circle-color', '#487f1e');
-				map.setPaintProperty('originMarkerLayer', 'circle-radius', 10);
-	      canvas.style.cursor = '';
-	      isCursorOverPoint = false;
-	      map.dragPan.enable();
-	  });
+						fetch(planURL)
+						.then(response => response.json())
+		        .then(json => routeDidPlan(json))
+						.catch(err => console.log(err));
+		      }
 
-	   map.on('mousedown', 'originMarkerLayer', function() {
-	     mouseDown("originMarkerLayer")
-	   });
+					function routeDidPlan(json){
+						console.log(json);
+						map.addSource('routeSource',{
+							"type": "geojson",
+						 	"data": json
+						});
+						map.addLayer({
+							 "id": "routeLayer",
+							 "type": "line",
+							 "source": 'routeSource',
+							 "layout": {
+							 		"line-join": "round",
+							 		"line-cap": "round"
+					 			},
+					 		"paint": {
+							 "line-color": "#888",
+							 "line-width": 8
+					 		}
+						});
+				}
 
-	 }
+		      function reverseGeocodingDidCalled(json, target) {
+		        let feature = json.features[0]
 
-	 function unpickOrigin() {
-		 console.log("unpick origin");
-		 if (map.getSource('originMarkerSource') != undefined) {
-			 originPicked = false
-			 map.removeLayer('originMarkerLayer')
-			 map.removeSource('originMarkerSource')
-		 }
-	 }
-	 function unpickDestination() {
-		 console.log("unpick destination");
-  		 if (map.getSource('destinationMarkerSource') != undefined) {
-				 destinationPicked = false
-  			 map.removeLayer('destinationMarkerLayer')
-				 map.removeSource('destinationMarkerSource')
-  		 }
-	 }
+		        let coords = feature.geometry.coordinates;
+		        let label = feature.properties.uc_label
 
+		        if (target == "origin") {
+		          originInput.value = label
+		        } else if (target == "destination") {
+		          destinationInput.value = label;
+		        }
+		      }
 
-	      function pickDestination(coordinates, text = "") {
-         destinationPicked = true
-	      destinationMarkerSrc.data.features[0].geometry.coordinates = coordinates;
+		    var originMarkerSrc = {
+		      "type": "geojson",
+		      "data": {
+		           "type": "FeatureCollection",
+		           "features": [
+		             {
+		               "type": "Feature",
+		               "geometry": {
+		                 "type": "Point",
+		                 "coordinates": [0,0]
+		             }
+		           }
+		         ]}
+		    };
 
-        if (map.getSource('destinationMarkerSource') == undefined) {
-          map.addSource('destinationMarkerSource', destinationMarkerSrc);
+		    var destinationMarkerSrc = {
+		      "type": "geojson",
+		      "data": {
+		           "type": "FeatureCollection",
+		           "features": [
+		             {
+		               "type": "Feature",
+		               "geometry": {
+		                 "type": "Point",
+		                 "coordinates": [0,0]
+		             }
+		           }
+		         ]}
+		    };
 
-         map.addLayer({
-           "id": "destinationMarkerLayer",
-           "type": "circle",
-           "source": "destinationMarkerSource",
-           "paint": {
-              "circle-radius": 10,
-              "circle-color": "#d90509"
-          }
-        });
-      } else {
-        map.getSource('destinationMarkerSource').setData(destinationMarkerSrc.data)
-      }
-
-	  // map.panTo(coordinates);
-
-	  // When the cursor enters a feature in the point layer, prepare for dragging.
-	  map.on('mouseenter', 'destinationMarkerLayer', function() {
-	      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#3bb2d0');
-				map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 15);
-	      canvas.style.cursor = 'move';
-	      isCursorOverPoint = true;
-	      map.dragPan.disable();
-	  });
-
-	  map.on('mouseleave', 'destinationMarkerLayer', function() {
-	      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#d90509');
-				map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 10);
-	      canvas.style.cursor = '';
-	      isCursorOverPoint = false;
-	      map.dragPan.enable();
-	  });
-
-	   map.on('mousedown','destinationMarkerLayer', function(){
-	     mouseDown("destinationMarkerLayer");
-	   });
-	  }
-	        // destinationMapMarker = destinationMapMarker
-	        // .setLngLat(coordinates)
-	        // .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(text));
-	        //
-	        // destinationMapMarker.addTo(map);
+		      function pickOrigin(coordinates, text = "") {
+	        originPicked = true
+		      originMarkerSrc.data.features[0].geometry.coordinates = coordinates;
 
 
-	      mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
+	        if (map.getSource('originMarkerSource') == undefined) {
+	          map.addSource('originMarkerSource', originMarkerSrc);
 
-	      var map = new mapboxgl.Map({
-	          container: 'map', // container id
-	          style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
-	          center: [14.42076, 50.08804], // starting position [lng, lat]
-	          zoom: 12 // starting zoom
-	      });
-
-	      map.on('click', mapDidClicked);
-
-
-
-	      if ("geolocation" in navigator) {
-	        navigator.geolocation.getCurrentPosition(position => {
-	          var location = [position.coords.longitude, position.coords.latitude];
-	          map.flyTo({center: [position.coords.longitude, position.coords.latitude]});
+	  	      map.addLayer({
+	  	        "id": "originMarkerLayer",
+	  	        "type": "circle",
+	  	        "source": "originMarkerSource",
+	  	        "paint": {
+	  	           "circle-radius": 10,
+	  	           "circle-color": "#487f1e"
+	  	       }
 	        });
 	      } else {
-	        var location = [14.42076, 50.08804];
+	        map.getSource('originMarkerSource').setData(originMarkerSrc.data)
 	      }
 
-	    var isDragging;
 
-	    // Is the cursor over a point? if this
-	    // flag is active, we listen for a mousedown event.
-	    var isCursorOverPoint;
+		  // map.panTo(coordinates);
 
-	    var canvas = map.getCanvasContainer();
+		  // When the cursor enters a feature in the point layer, prepare for dragging.
+		  map.on('mouseenter', 'originMarkerLayer', function() {
+		      map.setPaintProperty('originMarkerLayer', 'circle-color', '#3bb2d0');
+					map.setPaintProperty('originMarkerLayer', 'circle-radius', 15);
+		      canvas.style.cursor = 'move';
+		      isCursorOverPoint = true;
+		      map.dragPan.disable();
+		  });
+
+		  map.on('mouseleave', 'originMarkerLayer', function() {
+		      map.setPaintProperty('originMarkerLayer', 'circle-color', '#487f1e');
+					map.setPaintProperty('originMarkerLayer', 'circle-radius', 10);
+		      canvas.style.cursor = '';
+		      isCursorOverPoint = false;
+		      map.dragPan.enable();
+		  });
+
+		   map.on('mousedown', 'originMarkerLayer', function() {
+		     mouseDown("originMarkerLayer")
+		   });
+
+		 }
+
+		 function unpickOrigin() {
+			 console.log("unpick origin");
+			 if (map.getSource('originMarkerSource') != undefined) {
+				 originPicked = false
+				 map.removeLayer('originMarkerLayer')
+				 map.removeSource('originMarkerSource')
+			 }
+		 }
+		 function unpickDestination() {
+			 console.log("unpick destination");
+	  		 if (map.getSource('destinationMarkerSource') != undefined) {
+					 destinationPicked = false
+	  			 map.removeLayer('destinationMarkerLayer')
+					 map.removeSource('destinationMarkerSource')
+	  		 }
+		 }
 
 
-      var originDown = false
-      var destinationDown = false
+		      function pickDestination(coordinates, text = "") {
+	         destinationPicked = true
+		      destinationMarkerSrc.data.features[0].geometry.coordinates = coordinates;
 
-	    function mouseDown(src) {
-        if (!isCursorOverPoint) return;
-        isDragging = true;
-        // Set a cursor indicator
-	      canvas.style.cursor = 'grab';
+	        if (map.getSource('destinationMarkerSource') == undefined) {
+	          map.addSource('destinationMarkerSource', destinationMarkerSrc);
 
-        if (src == "originMarkerLayer") {
-          originDown = true;
-        } else {
-          destinationDown = true
-        }
-	       // Mouse events
-         map.on('mousemove', e => onMove(e));
-         map.on('mouseup', e => onUp(e));
-	}
+	         map.addLayer({
+	           "id": "destinationMarkerLayer",
+	           "type": "circle",
+	           "source": "destinationMarkerSource",
+	           "paint": {
+	              "circle-radius": 10,
+	              "circle-color": "#d90509"
+	          }
+	        });
+	      } else {
+	        map.getSource('destinationMarkerSource').setData(destinationMarkerSrc.data)
+	      }
 
-	function onMove(e) {
-	   if (!isDragging) return;
-	   var coords = e.lngLat;
+		  // map.panTo(coordinates);
 
-	   // Set a UI indicator for dragging.
-	   canvas.style.cursor = 'grabbing';
+		  // When the cursor enters a feature in the point layer, prepare for dragging.
+		  map.on('mouseenter', 'destinationMarkerLayer', function() {
+		      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#3bb2d0');
+					map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 15);
+		      canvas.style.cursor = 'move';
+		      isCursorOverPoint = true;
+		      map.dragPan.disable();
+		  });
 
-	   if (originDown) {
-	     originMarkerSrc.data.features[0].geometry.coordinates = [coords.lng, coords.lat];
-	     map.getSource('originMarkerSource').setData(originMarkerSrc.data);
-	   } else if (destinationDown){
-	     destinationMarkerSrc.data.features[0].geometry.coordinates = [coords.lng, coords.lat];
-	     map.getSource('destinationMarkerSource').setData(destinationMarkerSrc.data);
-	   }
-	}
+		  map.on('mouseleave', 'destinationMarkerLayer', function() {
+		      map.setPaintProperty('destinationMarkerLayer', 'circle-color', '#d90509');
+					map.setPaintProperty('destinationMarkerLayer', 'circle-radius', 10);
+		      canvas.style.cursor = '';
+		      isCursorOverPoint = false;
+		      map.dragPan.enable();
+		  });
 
-	function onUp(e) {
-	   if (!isDragging) return;
-	   var coords = e.lngLat;
+		   map.on('mousedown','destinationMarkerLayer', function(){
+		     mouseDown("destinationMarkerLayer");
+		   });
+		  }
+		        // destinationMapMarker = destinationMapMarker
+		        // .setLngLat(coordinates)
+		        // .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(text));
+		        //
+		        // destinationMapMarker.addTo(map);
 
-     if (originDown) {
-       reverseGeocoding(e,"origin")
-       originDown = false;
-     } else {
-       reverseGeocoding(e,"destination")
-       destinationDown = false;
-     }
 
-     // console.log("On up event");
-     // console.log(e);
-     // mapDidClicked(e)
+		      mapboxgl.accessToken = 'pk.eyJ1IjoicHJlbmVvbmQiLCJhIjoiY2o1ZGxlbGMxMGxicTJxcnlqMXdoYXZtciJ9.myreL4tEUijFKkauE1ysbA';
 
-	   // Print the coordinates of where the point had
-	   // finished being dragged to on the map.
-	   canvas.style.cursor = '';
-	   isDragging = false;
+		      var map = new mapboxgl.Map({
+		          container: 'map', // container id
+		          style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
+		          center: [14.42076, 50.08804], // starting position [lng, lat]
+		          zoom: 12 // starting zoom
+		      });
 
-	   // Unbind mouse events
-	   map.off('mousemove', e => onMove(e,src));
-	}
-	</script>
-</body>
-</html>
+		      map.on('click', mapDidClicked);
+
+
+
+		      // if ("geolocation" in navigator) {
+		      //   navigator.geolocation.getCurrentPosition(position => {
+		      //     var location = [position.coords.longitude, position.coords.latitude];
+		      //     map.flyTo({center: [position.coords.longitude, position.coords.latitude]});
+		      //   });
+		      // } else {
+		      //   var location = [14.42076, 50.08804];
+		      // }
+
+		    var isDragging;
+
+		    // Is the cursor over a point? if this
+		    // flag is active, we listen for a mousedown event.
+		    var isCursorOverPoint;
+
+		    var canvas = map.getCanvasContainer();
+
+
+	      var originDown = false
+	      var destinationDown = false
+
+		    function mouseDown(src) {
+	        if (!isCursorOverPoint) return;
+	        isDragging = true;
+	        // Set a cursor indicator
+		      canvas.style.cursor = 'grab';
+
+	        if (src == "originMarkerLayer") {
+	          originDown = true;
+	        } else {
+	          destinationDown = true
+	        }
+		       // Mouse events
+	         map.on('mousemove', e => onMove(e));
+	         map.on('mouseup', e => onUp(e));
+		}
+
+		function onMove(e) {
+		   if (!isDragging) return;
+		   var coords = e.lngLat;
+
+		   // Set a UI indicator for dragging.
+		   canvas.style.cursor = 'grabbing';
+
+		   if (originDown) {
+		     originMarkerSrc.data.features[0].geometry.coordinates = [coords.lng, coords.lat];
+		     map.getSource('originMarkerSource').setData(originMarkerSrc.data);
+		   } else if (destinationDown){
+		     destinationMarkerSrc.data.features[0].geometry.coordinates = [coords.lng, coords.lat];
+		     map.getSource('destinationMarkerSource').setData(destinationMarkerSrc.data);
+		   }
+		}
+
+		function onUp(e) {
+		   if (!isDragging) return;
+		   var coords = e.lngLat;
+
+	     if (originDown) {
+	       reverseGeocoding(e,"origin")
+	       originDown = false;
+	     } else {
+	       reverseGeocoding(e,"destination")
+	       destinationDown = false;
+	     }
+
+	     // console.log("On up event");
+	     // console.log(e);
+	     // mapDidClicked(e)
+
+		   // Print the coordinates of where the point had
+		   // finished being dragged to on the map.
+		   canvas.style.cursor = '';
+		   isDragging = false;
+
+		   // Unbind mouse events
+		   map.off('mousemove', e => onMove(e,src));
+		}
+		</script>
+	</body>
+	</html>

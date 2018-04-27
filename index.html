@@ -28,41 +28,55 @@
 		            #search-box {
 		              position:absolute;
 		              margin:50px 50px 50px 50px;
-		              padding: 10px 10px 10px 10px;
-		              width: 400px;
+		              padding: 20px 20px 20px 20px;
+		              width: 300px;
 		              height:150px;
 		              background-color: white;
 		              border-radius: 15px;
 		              background: rgba(255,255,255,0.9);
+  								transition:all 2s ease;
 		            }
+
+								#search-box.expand {
+									height: 500px;
+									overflow: scroll;
+								}
+
 		            #search-table {
-		              position: relative;
-		              width: 90%;
-		              height: 100%;
+									display: flex;
+									justify-content: center;
+									flex-flow: row;
 		            }
+
 		            #search-table tr {
-		              position: relative;
 		              height: 50px;
 		              width: 200px;
 		            }
 		            #search-table input {
-		              position: relative;
-		              width: 80%;
-		              height: 80%;
+		              width: 90%;
+		              height: 100%;
 		              font-size: 14px;
 		            }
 
 		            #search-table button {
 		              position: relative;
 		              width: 100%;
-		              height: 80%;
+		              height: 100%;
 		              font-size: 14px;
 		            }
+
 		            #planRouteBtn {
 		              border: none;
 		              color: white;
 		              background-color: green;
 		            }
+								#planRouteBtn:enabled {
+									opacity: 1.0;
+								}
+
+								#planRouteBtn:disabled {
+									opacity: 0.3;
+								}
 
 		            @keyframes shake {
 		              10%, 90% {
@@ -85,6 +99,50 @@
 		            .apply-shake {
 		              animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
 		            }
+								.vl {
+									position: relative;
+    							background-color: grey;
+									width: 3px;
+									height: 35px;
+								}
+								.hl {
+									position: relative;
+									width: 100%;
+									border-bottom: : 3px solid green;
+								}
+
+								.description {
+									padding: 5px 5px 5px 5px;
+									display: flex;
+									flex-flow: row wrap;
+									justify-content: space-between;
+								}
+								.description img {
+									height: 20px;
+									padding: 5px 5px 5px 5px;
+								}
+								.descriptionContent {
+									display: flex;
+									flex-flow: column wrap;
+									justify-content: center;
+									align-items: center;
+									background-color: red;
+								}
+
+								.descriptionSidebarPanel {
+									display: flex;
+									flex-flow: column wrap;
+									justify-content: center;
+									align-items: center;
+									background-color: yellow;
+								}
+
+
+								.box {
+									height: 10px;
+									width: 10px;
+									background-color: black;
+								}
 		</style>
 	</head>
 	<body>
@@ -103,11 +161,20 @@
 							<th><img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.png"></th>
 						</tr>
 						<tr>
-							<th><img alt="" height="25" id="carIcon" src="img/transport_modes/car_enabled.png"> <img alt="" height="25" id="transitIcon" src="img/transport_modes/transit_enabled.png"> <img alt="" height="25" id="bikeIcon" src="img/transport_modes/bike_enabled.png"> <img alt="" height="25" id="walkIcon" src="img/transport_modes/walk_enabled.png"></th>
-							<th><button id="planRouteBtn">Find</button></th>
+							<th>
+								<img alt="car" height="25" id="carIcon" src="img/transport_modes/car_enabled.png">
+								<img alt="transit" height="25" id="transitIcon" src="img/transport_modes/transit_enabled.png">
+								<img alt="bike" height="25" id="bikeIcon" src="img/transport_modes/bike_enabled.png">
+								<img alt="walk" height="25" id="walkIcon" src="img/transport_modes/walk_enabled.png">
+							</th>
+							<th>
+								<button id="planRouteBtn">Find</button>
+							</th>
 						</tr>
 					</tbody>
 				</table>
+			</div>
+			<div id='description-box' display='none'>
 			</div>
 		</div>
 		<script>
@@ -115,6 +182,7 @@
 		    var originPicked = false;
 		    var destinationMarkEnabled = false;
 		    var destinationPicked = false;
+				var isRoutePlanned = false;
 
 		    var carEnabled = true;
 		    var transitEnabled = true;
@@ -154,15 +222,15 @@
 		    // destinationMarkerElm.src = "img/markers/marker_destination.png"
 		    // var destinationMapMarker = new mapboxgl.Marker(destinationMarkerElm, {draggable: true});
 
-		    // var originComplete = new Awesomplete(originInput, {});
-		    // var destinationComplete = new Awesomplete(destinationInput, {});
+		    var originComplete = new Awesomplete(originInput, {});
+		    var destinationComplete = new Awesomplete(destinationInput, {});
 
 		    var originInput = document.getElementById("originInput");
 		    originInput.addEventListener('input', autoComplete);
 		    originInput.addEventListener('keyup', function(e) {
 		      if (e.keyCode === 13) inputDidConfirmed(e)
 		    })
-	      // Awesomplete.$.bind(originInput, { "awesomplete-select":e => inputDidConfirmed(e)})
+	      Awesomplete.$.bind(originInput, { "awesomplete-select":e => inputDidConfirmed(e)})
 
 
 		    var destinationInput = document.getElementById("destinationInput");
@@ -170,21 +238,21 @@
 		    destinationInput.addEventListener('keyup', function(e) {
 		      if (e.keyCode === 13) inputDidConfirmed(e)
 		    })
-	      // Awesomplete.$.bind(destinationInput, { "awesomplete-select":e => inputDidConfirmed(e)})
+	      Awesomplete.$.bind(destinationInput, { "awesomplete-select":e => inputDidConfirmed(e)})
 
 		    var carIconElm = document.getElementById("carIcon");
 		    carIconElm.addEventListener("click", modeClicked);
 
-		    const transitIconElm = document.getElementById("transitIcon");
+		    var transitIconElm = document.getElementById("transitIcon");
 		    transitIconElm.addEventListener("click", modeClicked);
 
-		    const bikeIconElm = document.getElementById("bikeIcon");
+		    var bikeIconElm = document.getElementById("bikeIcon");
 		    bikeIconElm.addEventListener("click", modeClicked);
 
-		    const walkIconElm = document.getElementById("walkIcon");
+		    var walkIconElm = document.getElementById("walkIcon");
 		    walkIconElm.addEventListener("click", modeClicked);
 
-		    const planRouteBtnElm = document.getElementById("planRouteBtn")
+		    var planRouteBtnElm = document.getElementById("planRouteBtn")
 		    planRouteBtnElm.addEventListener("click", planRoute);
 
 		    function modeClicked(e) {
@@ -260,9 +328,8 @@
 		      }
 
 		      function inputDidConfirmed(e) {
-						const inputText = e.target.value;
+						const inputText = e.type ==  "awesomplete-select" ? e.text : e.target.value;
 						const feature = featureList.filter( feature => feature.properties.uc_label == inputText)[0];
-
 						if (feature == undefined) {
 							console.log(e);
 							if (e.target.id == "originInput") {
@@ -279,6 +346,12 @@
 		        	}
 		        	// map.flyTo({center: coords});
 	          	map.panTo(coords)
+							if (isRoutePlanned) {
+								map.removeLayer('routeLayer');
+			 				 	map.removeSource('routeSource');
+								planRouteBtnElm.disabled = false;
+								document.getElementById('search-box').classList.toggle('expand')
+							}
 						}
 		      }
 
@@ -291,37 +364,120 @@
 						const originCoords = map.getSource('originMarkerSource')._data.features[0].geometry.coordinates
 						const destinationCoords = map.getSource('destinationMarkerSource')._data.features[0].geometry.coordinates
 
-						console.log(originCoords);
+						// console.log(originCoords);
 
-						var planURL = "http://127.0.0.1:8080/api/getIntermodalRoute"
+						var planURL = "http://127.0.0.1:8888/api/getIntermodalRoute"
 						planURL += "?origin=" + originCoords[1] + "," + originCoords[0]
 						planURL += "&destination=" + destinationCoords[1] + "," + destinationCoords[0]
 
 						fetch(planURL)
 						.then(response => response.json())
-		        .then(json => routeDidPlan(json))
+		        .then(json => routeDidPlanned(json))
 						.catch(err => console.log(err));
+
+
 		      }
 
-					function routeDidPlan(json){
-						console.log(json);
-						map.addSource('routeSource',{
-							"type": "geojson",
-						 	"data": json
-						});
-						map.addLayer({
-							 "id": "routeLayer",
-							 "type": "line",
-							 "source": 'routeSource',
-							 "layout": {
-							 		"line-join": "round",
-							 		"line-cap": "round"
-					 			},
-					 		"paint": {
-							 "line-color": "#888",
-							 "line-width": 8
-					 		}
-						});
+					function routeDidPlanned(json){
+						if (map.getSource('routeSource') == undefined) {
+							map.addSource('routeSource',{
+								"type": "geojson",
+							 	"data": json.route
+							});
+							map.addLayer({
+								 "id": "routeLayer",
+								 "type": "line",
+								 "source": 'routeSource',
+								 "layout": {
+								 		"line-join": "round",
+								 		"line-cap": "round"
+						 			},
+						 		"paint": {
+								// Use a get expression (https://www.mapbox.com/mapbox-gl-js/style-spec/#expressions-get)
+             		// to set the line-color to a feature property value.
+             		'line-color': ['get', 'color'],
+								 "line-width": 6
+						 		}
+							});
+							isRoutePlanned = true;
+						} else {
+							map.getSource('routeSource').setData(json.route);
+						}
+						showDescription(json.description);
+						planRouteBtnElm.disabled = true;
+				}
+
+				function showDescription(description) {
+					document.getElementById('search-box').classList.add('expand');
+					document.getElementById('search-table').classList.add('hl');
+
+					var descriptionBoxElm = document.getElementById('description-box');
+					descriptionBoxElm.classList.add('description')
+
+					var descriptionPanelElm = document.createElement('div')
+					descriptionPanelElm.classList.add('descriptionSidebarPanel')
+
+					var descriptionContentElm = document.createElement('div');
+					descriptionContentElm.classList.add('descriptionContent')
+
+
+					var verticalLineElm = document.createElement('div');
+					verticalLineElm.classList.add('vl');
+
+
+					// var originElm = document.createElement('img');
+					// originElm.src = "img/markers/marker_origin.png";
+					// originElm.classList.add('description');
+					var originElm = document.createElement('div');
+					originElm.classList.add('box');
+					descriptionPanelElm.appendChild(originElm)
+
+
+					description.legs.forEach(leg => {
+						var lineElm = document.createElement('div');
+						lineElm.classList.add('vl');
+						descriptionPanelElm.appendChild(lineElm);
+
+						var contentLineElm = document.createElement('div');
+						contentLineElm.classList.add('descriptionLine');
+
+
+						var durationElm = document.createElement('p');
+						var node = document.createTextNode("Duration: " + leg.duration + "s");
+						contentLineElm.appendChild(durationElm);
+
+						var modeIconElm = document.createElement('img');
+						modeIconElm.src = getSrcForMode(leg.mode);
+						contentLineElm.appendChild(modeIconElm);
+
+						descriptionContentElm.appendChild(contentLineElm);
+
+						var boxElm = document.createElement('div');
+						boxElm.classList.add('box')
+						descriptionPanelElm.appendChild(boxElm);
+					});
+
+					// var destinationElm = document.createElement('img');
+					// destinationElm.src = "img/markers/marker_destination.png";
+					// destinationElm.classList.add('description');
+
+					// var destinationElm = document.createElement('div');
+					// destinationElm.classList.add('box');
+					// descriptionPanelElm.appendChild(destinationElm)
+
+					descriptionBoxElm.appendChild(descriptionPanelElm);
+					descriptionBoxElm.appendChild(descriptionContentElm)
+
+				}
+
+				function getSrcForMode(mode) {
+					switch (mode) {
+						case expression:
+
+							break;
+						default:
+
+					}
 				}
 
 		      function reverseGeocodingDidCalled(json, target) {
@@ -536,6 +692,8 @@
 		   if (!isDragging) return;
 		   var coords = e.lngLat;
 
+			 // console.log("onMove");
+
 		   // Set a UI indicator for dragging.
 		   canvas.style.cursor = 'grabbing';
 
@@ -559,6 +717,8 @@
 	       reverseGeocoding(e,"destination")
 	       destinationDown = false;
 	     }
+
+			 if (isRoutePlanned) planRoute()
 
 	     // console.log("On up event");
 	     // console.log(e);

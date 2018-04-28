@@ -15,6 +15,7 @@
 		            body {
 		              margin:0;
 		              padding:0;
+									font-family: Helvetica;
 		            }
 		            img {
 		              margin-right: 20px;
@@ -103,7 +104,7 @@
 									position: relative;
     							background-color: grey;
 									width: 3px;
-									height: 35px;
+									height: 40px;
 								}
 								.hl {
 									position: relative;
@@ -112,10 +113,11 @@
 								}
 
 								.description {
-									padding: 5px 5px 5px 5px;
+									padding: 20px 10px 20px;
+
 									display: flex;
 									flex-flow: row wrap;
-									justify-content: space-between;
+									justify-content: flex-start;
 								}
 								.description img {
 									height: 20px;
@@ -124,9 +126,9 @@
 								.descriptionContent {
 									display: flex;
 									flex-flow: column wrap;
-									justify-content: center;
-									align-items: center;
-									background-color: red;
+									justify-content:space-around;
+									align-items: flex-start;
+									/* background-color: red; */
 								}
 
 								.descriptionSidebarPanel {
@@ -134,14 +136,15 @@
 									flex-flow: column wrap;
 									justify-content: center;
 									align-items: center;
-									background-color: yellow;
+									/* background-color: yellow; */
 								}
 
 
 								.box {
 									height: 10px;
 									width: 10px;
-									background-color: black;
+									border-radius: 5px 5px 5px 5px;
+									background-color: green;
 								}
 		</style>
 	</head>
@@ -274,6 +277,7 @@
 		            e.target.src = walkEnabled ? walkEnabledSrc : walkDisabledSrc;
 		            break;
 		      }
+					planRouteBtnElm.disabled = false;
 		    }
 
 		    function autoComplete(e) {
@@ -366,10 +370,34 @@
 
 						// console.log(originCoords);
 
-						var planURL = "http://127.0.0.1:8888/api/getIntermodalRoute"
-						planURL += "?origin=" + originCoords[1] + "," + originCoords[0]
-						planURL += "&destination=" + destinationCoords[1] + "," + destinationCoords[0]
+						var planURL = ""
+						var interRouteWithModeURL = "http://127.0.0.1:8888/api/getIntermodalRouteWithMode"
+						var parameters = ""
+						parameters += "?origin=" + originCoords[1] + "," + originCoords[0]
+						parameters += "&destination=" + destinationCoords[1] + "," + destinationCoords[0]
 
+
+						var availableModes = []
+						if (!bikeEnabled || !carEnabled || !transitEnabled || !walkEnabled) {
+							if (bikeEnabled) {
+								availableModes.push("BICYCLE")
+							}
+							if (carEnabled) {
+								availableModes.push("CAR")
+							}
+							if (transitEnabled) {
+								availableModes.push("TRANSIT")
+							}
+							if (walkEnabled) {
+								availableModes.push("WALK")
+							}
+						}
+
+						parameters += "&availableModes=" + availableModes.join(",");
+						planURL = interRouteWithModeURL + parameters
+
+
+						console.log(planURL);
 						fetch(planURL)
 						.then(response => response.json())
 		        .then(json => routeDidPlanned(json))
@@ -412,13 +440,17 @@
 					document.getElementById('search-table').classList.add('hl');
 
 					var descriptionBoxElm = document.getElementById('description-box');
+					descriptionBoxElm.innerHTML = '';
 					descriptionBoxElm.classList.add('description')
 
 					var descriptionPanelElm = document.createElement('div')
 					descriptionPanelElm.classList.add('descriptionSidebarPanel')
 
-					var descriptionContentElm = document.createElement('div');
-					descriptionContentElm.classList.add('descriptionContent')
+					var descriptionImgElm = document.createElement('div');
+					descriptionImgElm.classList.add('descriptionContent')
+
+					var descriptionInfoElm = document.createElement('div');
+					descriptionInfoElm.classList.add('descriptionContent')
 
 
 					var verticalLineElm = document.createElement('div');
@@ -443,14 +475,25 @@
 
 
 						var durationElm = document.createElement('p');
-						var node = document.createTextNode("Duration: " + leg.duration + "s");
-						contentLineElm.appendChild(durationElm);
+
+						var minutes = Math.floor(leg.duration/60);
+						var secs = leg.duration -  minutes* 60
+
+						var duration = ""
+						duration += minutes == 0 ? "" : (minutes + " min ")
+						duration += secs + "s"
+
+						var node = document.createTextNode(duration);
+						durationElm.appendChild(node);
+
+
+						descriptionInfoElm.appendChild(durationElm);
 
 						var modeIconElm = document.createElement('img');
-						modeIconElm.src = getSrcForMode(leg.mode);
+						modeIconElm.src = getSrcForMode(leg.transportMode);
 						contentLineElm.appendChild(modeIconElm);
 
-						descriptionContentElm.appendChild(contentLineElm);
+						descriptionImgElm.appendChild(contentLineElm);
 
 						var boxElm = document.createElement('div');
 						boxElm.classList.add('box')
@@ -466,17 +509,22 @@
 					// descriptionPanelElm.appendChild(destinationElm)
 
 					descriptionBoxElm.appendChild(descriptionPanelElm);
-					descriptionBoxElm.appendChild(descriptionContentElm)
+					descriptionBoxElm.appendChild(descriptionImgElm)
+					descriptionBoxElm.appendChild(descriptionInfoElm)
 
 				}
 
 				function getSrcForMode(mode) {
+					console.log(mode);
 					switch (mode) {
-						case expression:
-
-							break;
+						case "WALK":
+							return "img/transport_modes/walk_enabled.png"
+						case "CAR":
+							return "img/transport_modes/car_enabled.png"
+						case "BICYCLE":
+							return "img/transport_modes/bike_enabled.png"
 						default:
-
+							return "img/transport_modes/transit_enabled.png"
 					}
 				}
 

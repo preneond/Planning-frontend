@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="50px" height="80px" viewBox="0 0 50 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50 (54983) - http://www.bohemiancoding.com/sketch -->
+    <title>location-pointer-2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="location-pointer-2" fill="#D80027" fill-rule="nonzero">
+            <path d="M25,0 C11.191,0 0,11.194 0,25 C0,48.87 25,80 25,80 C25,80 50,48.87 50,25 C50,11.194 38.807,0 25,0 Z M25,38.8 C17.543,38.8 11.5,32.756 11.5,25.3 C11.5,17.844 17.543,11.8 25,11.8 C32.455,11.8 38.5,17.844 38.5,25.3 C38.5,32.756 32.455,38.8 25,38.8 Z" id="Shape"></path>
+        </g>
+    </g>
+</svg>

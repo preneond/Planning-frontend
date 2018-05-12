@@ -37,7 +37,6 @@ var modeIcons = document.querySelectorAll('.modeIcon');
 
 modeIcons.forEach(item => {
         item.addEventListener('click', function () {
-            console.log(this);
             this.classList.toggle('enabled')
             planRouteBtnElm.disabled = false;
         });

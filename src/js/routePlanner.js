@@ -165,6 +165,30 @@ class RoutePoint {
         this.isDragging = false;
         this.isCursorOverPoint = false;
         this.featureList = [];
+        this.routePointComplete = new Awesomplete(elm, {})
+
+        Awesomplete.$.bind(elm, {
+            "awesomplete-select": e => this.inputDidConfirmed(e)
+        })
+
+        this.elm.addEventListener('input',this.autoComplete.bind(this));
+        this.elm.addEventListener('keyup', function(e) {
+            if (e.keyCode === 13) inputDidConfirmed(e)
+        }.bind(this))
+    }
+
+    inputDidConfirmed(e) {
+        const inputText = e.type == "awesomplete-select" ? e.text : e.target.value;
+        const feature = this.featureList.filter(feature => feature.properties.uc_label == inputText)[0];
+
+        if (feature == undefined) {
+            this.unpickRoutePoint()
+        } else {
+            const coords = feature.geometry.coordinates;
+            this.pickRoutePoint(coords)
+            map.panTo(coords)
+        }
+        if (isRoutePlanned) this.removeRoute()
     }
 
     pickRoutePoint(coordinates) {
@@ -229,13 +253,15 @@ class RoutePoint {
 
         fetch(reqURL)
             .then(response => response.json())
-            .then(json => autocompleteListDidChange(e, json));
+            .then(function(json) {
+                this.autocompleteListDidChange(e, json);
+            }.bind(this));
     }
 
-    _autocompleteListDidChange(e, response) {
-        featureList = response.features;
-        routePointComplete.list = featureList.map(feature => feature.properties.uc_label);
-        routePointComplete.evaluate()
+    autocompleteListDidChange(e, response) {
+        this.featureList = response.features;
+        this.routePointComplete.list = this.featureList.map(feature => feature.properties.uc_label);
+        this.routePointComplete.evaluate()
     }
 
 

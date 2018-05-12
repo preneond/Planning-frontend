@@ -50,6 +50,7 @@ var originComplete = new Awesomplete(originInput, {});
 var destinationComplete = new Awesomplete(destinationInput, {});
 
 
+// autoComplete listener
 Awesomplete.$.bind(originInput, {
     "awesomplete-select": e => inputDidConfirmed(e)
 })

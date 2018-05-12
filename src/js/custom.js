@@ -8,6 +8,7 @@ var map = new mapboxgl.Map({
 });
 
 if ("geolocation" in navigator) {
+    // Center map in user location
     navigator.geolocation.getCurrentPosition(position => {
         map.panTo([position.coords.longitude, position.coords.latitude]);
     });
@@ -21,20 +22,18 @@ if ("geolocation" in navigator) {
     }));
 
 }
-var routePlanner = new RoutePlanner(map);
 
+var routePlanner = new RoutePlanner(map);
 
 var planRouteBtnElm = document.getElementById("planRouteBtn")
 planRouteBtnElm.addEventListener("click", function(){
   routePlanner.planRoute()
 }.bind(this));
 
-// routePlanner.addEventListener("onRoutePlanned", description => {
-//   showDescription(description);
-// });
+
+//disable/enable mode as a transport mode
 
 var modeIcons = document.querySelectorAll('.modeIcon');
-
 modeIcons.forEach(item => {
         item.addEventListener('click', function () {
             this.classList.toggle('enabled')
@@ -43,6 +42,7 @@ modeIcons.forEach(item => {
 });
 
 
+// Show description about founded Route
 function showDescription(description) {
     document.getElementById('search-table').classList.add('hl');
 
@@ -51,6 +51,7 @@ function showDescription(description) {
 }
 
 
+// Show summary info bellow search box
 function showDescriptionSummary(description) {
   var descriptionSummaryElm = document.getElementById('description-summary');
   var totalDuration = description.legs.map(leg => leg.duration).reduce((a, b) => a + b, 0);
@@ -61,6 +62,7 @@ function showDescriptionSummary(description) {
 }
 
 
+// Show route description with all legs below summary info
 function showDescriptionBox(description) {
   var descriptionBoxElm = document.getElementById('description-box');
   descriptionBoxElm.innerHTML = '';

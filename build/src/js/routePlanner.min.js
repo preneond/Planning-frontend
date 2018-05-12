@@ -55,11 +55,13 @@ class RoutePlanner {
 
     }
 
+    // init origin and destination point
     initOD() {
         self.origin = new RoutePoint(document.getElementById('originInput'), 'originMarkerSource', originMarkerSrc, 'originMarkerLayer', originMarkerLayerSrc);
         self.destination = new RoutePoint(document.getElementById('destinationInput'), 'destinationMarkerSource', destinationMarkerSrc, 'destinationMarkerLayer', destinationMarkerLayerSrc);
     }
 
+    // Plan route when origin and destination is picked
     planRoute() {
         if (!origin.isPicked || !destination.isPicked) {
             if (!origin.isPicked) originIconElm.classList.add("apply-shake");
@@ -103,6 +105,8 @@ class RoutePlanner {
 
     }
 
+
+    // hide route from map
     removeRoute() {
         map.removeLayer('routeLayer');
         map.removeSource('routeSource');
@@ -110,6 +114,7 @@ class RoutePlanner {
         document.getElementById('planRouteBtn').disabled = false;
     }
 
+    // user interaction on map
     mapDidClicked(e) {
         if (!origin.isPicked) {
             origin.pickRoutePoint([e.lngLat.lng, e.lngLat.lat])
@@ -120,6 +125,8 @@ class RoutePlanner {
         }
     }
 
+
+    // on received JSON response from Backend
     routeDidPlanned(json) {
         if (this.map.getSource('routeSource') == undefined) {
             this.map.addSource('routeSource', {
@@ -177,6 +184,8 @@ class RoutePoint {
         }.bind(this))
     }
 
+
+    // on inputBox confirm method
     inputDidConfirmed(e) {
         const inputText = e.type == "awesomplete-select" ? e.text : e.target.value;
         const feature = this.featureList.filter(feature => feature.properties.uc_label == inputText)[0];
@@ -203,8 +212,6 @@ class RoutePoint {
             map.getSource(this.pointMarkerSrcId).setData(this.pointMarkerSrc.data)
         }
 
-
-        // map.panTo(coordinates);
 
         // When the cursor enters a feature in the point layer, prepare for dragging.
         map.on('mouseenter', this.pointLayerSrcId, function() {
@@ -237,7 +244,7 @@ class RoutePoint {
         }
     }
 
-
+    // autoComplete function on Input Box
     autoComplete(e) {
         const text = e.target.value
         if (text.length < 2) return;
@@ -258,6 +265,8 @@ class RoutePoint {
             }.bind(this));
     }
 
+
+    // on received updated autoComplete list from Backend
     autocompleteListDidChange(e, response) {
         this.featureList = response.features;
         this.routePointComplete.list = this.featureList.map(feature => feature.properties.uc_label);
@@ -265,6 +274,7 @@ class RoutePoint {
     }
 
 
+    // when user pin a marker on map, using this method we fill input box
     reverseGeocoding(e) {
         const reverseGeocodingURL = "https://uc1.umotional.net/geocoding/reverse"
 
@@ -277,6 +287,7 @@ class RoutePoint {
             .then(json => this.reverseGeocodingDidCalled(json));
     }
 
+    // on received info about marker location;
     reverseGeocodingDidCalled(json) {
         let feature = json.features[0]
 
@@ -287,6 +298,7 @@ class RoutePoint {
 
     }
 
+    // user interaction delegate with marker
     mouseDown(src) {
         if (!this.isCursorOverPoint) return;
         this.isDragging = true;
@@ -304,6 +316,7 @@ class RoutePoint {
         }.bind(this));
     }
 
+    // user interaction delegate with marker
     onMove(e) {
         if (!this.isDragging) return;
         var coords = e.lngLat;
@@ -313,6 +326,7 @@ class RoutePoint {
         map.getSource(this.pointMarkerSrcId).setData(this.pointMarkerSrc.data);
     }
 
+    // user interaction delegate with marker
     onUp(e) {
         if (!this.isDragging) return;
         var coords = e.lngLat;

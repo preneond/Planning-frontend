@@ -180,7 +180,7 @@ class RoutePoint {
 
         this.elm.addEventListener('input',this.autoComplete.bind(this));
         this.elm.addEventListener('keyup', function(e) {
-            if (e.keyCode === 13) inputDidConfirmed(e)
+            if (e.keyCode === 13) this.inputDidConfirmed(e)
         }.bind(this))
     }
 
@@ -204,7 +204,7 @@ class RoutePoint {
         this.isPicked = true
         this.pointMarkerSrc.data.features[0].geometry.coordinates = coordinates;
 
-        if (map.getSource(this.pointMarkerStcId) == undefined) {
+        if (map.getSource(this.pointMarkerSrcId) == undefined) {
             map.addSource(this.pointMarkerSrcId, this.pointMarkerSrc);
 
             map.addLayer(this.pointLayerSrc);
@@ -247,7 +247,7 @@ class RoutePoint {
     // autoComplete function on Input Box
     autoComplete(e) {
         const text = e.target.value
-        if (text.length < 2) return;
+        // if (text.length < 2) return;
 
         const centerCoords = map.getCenter();
         const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"

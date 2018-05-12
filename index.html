@@ -6,8 +6,9 @@
 
 			<link href="src/css/custom.css" rel='stylesheet' />
 
-			<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
 			<script src="libraries/awesomplete/awesomplete.js"></script>
+			<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
+
 
 			<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
 			<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet'>
@@ -24,7 +25,6 @@
                   </tr>
                   <tr>
                      <th>
-                        <!-- <input id="placeInput" placeholder="Destination place"/> -->
                         <input id="destinationInput" placeholder="Destination place">
                      </th>
                      <th><img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.svg"></th>
@@ -43,11 +43,12 @@
                </tbody>
             </table>
          </div>
-         <div id='description-box'>
-         </div>
 				 <div id='description-summary'>
 				 </div>
+				 <div id='description-box'>
+         </div>
       </div>
    </body>
-	 <script src="src/js/planning.js"></script>
+	 <script src="src/js/routePlanner.js"></script>
+	 <script src="src/js/custom.js"></script>
 </html>

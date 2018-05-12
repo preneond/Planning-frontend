@@ -1,3 +1,52 @@
+
+var featureList = [];
+
+Awesomplete.$.bind(originInput, {
+    "awesomplete-select": e => inputDidConfirmed(e)
+})
+
+function autoComplete(e) {
+  const text = e.target.value
+  if (text.length < 2) return;
+
+  const centerCoords = map.getCenter();
+  const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
+
+  var reqURL = autoCompleteURL + "?text=" + text;
+
+  if (centerCoords != null) {
+      reqURL += "&focus.point.lat=" + centerCoords.lat;
+      reqURL += "&focus.point.lon=" + centerCoords.lng;
+  }
+
+  var ajax = new XMLHttpRequest();
+
+  ajax.open("GET", reqURL, true);
+
+  ajax.onload = function() {
+	   const responseJSON = JSON.parse(ajax.responseText);
+     autocompleteListDidChange(e,responseJSON)
+  };
+
+  ajax.send();
+}
+
+
+function autocompleteListDidChange(e, response) {
+    featureList = response.features;
+    if (e.target.id == "originInput") {
+        const list = featureList.map(feature => feature.properties.uc_label);
+        new Awesomplete(document.querySelector(e.target.id),{ list: list });
+        console.log(list);
+    } else {
+        const list = featureList.map(feature => feature.properties.uc_label);
+        new Awesomplete(document.querySelector(e.target.id),{ list: list });
+        console.log(list);
+    }
+
+
+}
+
 var originMarkEnabled = false;
 var originPicked = false;
 var destinationMarkEnabled = false;
@@ -24,6 +73,7 @@ originInput.addEventListener('input', autoComplete);
 originInput.addEventListener('keyup', function(e) {
     if (e.keyCode === 13) inputDidConfirmed(e)
 })
+
 Awesomplete.$.bind(originInput, {
     "awesomplete-select": e => inputDidConfirmed(e)
 })
@@ -46,29 +96,10 @@ var modeIcons = document.querySelectorAll('.modeIcon');
 
 modeIcons.forEach(item => {
         item.addEventListener('click', function () {
-            console.log(this);
             this.classList.toggle('enabled')
             planRouteBtnElm.disabled = false;
         });
 });
-
-function autoComplete(e) {
-    const text = e.target.value
-    if (text.length < 2) return;
-
-    const centerCoords = map.getCenter();
-    const autoCompleteURL = "https://uc1.umotional.net/geocoding/autocomplete"
-
-    var reqURL = autoCompleteURL + "?text=" + text;
-    if (centerCoords != null) {
-        reqURL += "&focus.point.lat=" + centerCoords.lat;
-        reqURL += "&focus.point.lon=" + centerCoords.lng;
-    }
-
-    fetch(reqURL)
-        .then(response => response.json())
-        .then(json => autocompleteListDidChange(e, json));
-}
 
 function mapDidClicked(e) {
     if (!originPicked) {
@@ -170,8 +201,6 @@ function planRoute(e) {
     parameters += "&availableModes=" + availableModes.join(",");
     planURL = interRouteWithModeURL + parameters
 
-
-    console.log(planURL);
     fetch(planURL)
         .then(response => response.json())
         .then(json => routeDidPlanned(json))
@@ -208,99 +237,101 @@ function routeDidPlanned(json) {
     planRouteBtnElm.disabled = true;
 }
 
+
+function transformDurationToString(duration) {
+  var hours = Math.floor(duration / 3600)
+  var minutes = Math.floor((duration - hours * 3600) / 60);
+  var secs = Math.floor(duration - hours * 3600 - minutes * 60);
+
+  var durationStr = "";
+  durationStr += hours == 0 ? "" : (hours + " h ");
+  durationStr += minutes == 0 ? "" : (minutes + " min ");
+  durationStr += secs + "s";
+
+  return durationStr;
+}
+
+function showDescriptionSummary(description) {
+  var descriptionSummaryElm = document.getElementById('description-summary');
+  var totalDuration = description.legs.map(leg => leg.duration).reduce((a, b) => a + b, 0);
+
+  descriptionSummaryElm.innerHTML = "";
+  descriptionSummaryElm.innerHTML += "<p>Route duration: </p>";
+  descriptionSummaryElm.innerHTML += "<p>" + transformDurationToString(totalDuration) + "</p>"
+}
+
+
+function showDescriptionBox(description) {
+  var descriptionBoxElm = document.getElementById('description-box');
+  descriptionBoxElm.innerHTML = '';
+  descriptionBoxElm.classList.add('description')
+
+  var descriptionPanelElm = document.createElement('div')
+  descriptionPanelElm.classList.add('descriptionSidebarPanel')
+
+  var descriptionImgElm = document.createElement('div');
+  descriptionImgElm.classList.add('descriptionContent')
+
+  var descriptionInfoElm = document.createElement('div');
+  descriptionInfoElm.classList.add('descriptionContent')
+
+  var verticalLineElm = document.createElement('div');
+  verticalLineElm.classList.add('vl');
+
+  var originElm = document.createElement('div');
+  originElm.classList.add('box');
+  descriptionPanelElm.appendChild(originElm)
+
+  description.legs.forEach(leg => {
+      var lineElm = document.createElement('div');
+      lineElm.classList.add('vl');
+      lineElm.style.background = leg.color;
+      descriptionPanelElm.appendChild(lineElm);
+
+      var contentLineElm = document.createElement('div');
+      contentLineElm.classList.add('descriptionLine');
+
+      var durationElm = document.createElement('p');
+
+      var duration = transformDurationToString(leg.duration);
+
+      var node = document.createTextNode(duration);
+      durationElm.appendChild(node);
+      descriptionInfoElm.appendChild(durationElm);
+
+      var modeIconElm = document.createElement('img');
+      modeIconElm.src = getSrcForMode(leg.transportMode);
+      contentLineElm.appendChild(modeIconElm);
+
+      descriptionImgElm.appendChild(contentLineElm);
+
+      var boxElm = document.createElement('div');
+      boxElm.classList.add('box')
+      descriptionPanelElm.appendChild(boxElm);
+  });
+
+  descriptionBoxElm.appendChild(descriptionPanelElm);
+  descriptionBoxElm.appendChild(descriptionImgElm);
+  descriptionBoxElm.appendChild(descriptionInfoElm);
+}
+
 function showDescription(description) {
-    document.getElementById('search-box').classList.add('expand');
     document.getElementById('search-table').classList.add('hl');
 
-    var descriptionBoxElm = document.getElementById('description-box');
-    descriptionBoxElm.innerHTML = '';
-    descriptionBoxElm.classList.add('description')
-
-    var descriptionPanelElm = document.createElement('div')
-    descriptionPanelElm.classList.add('descriptionSidebarPanel')
-
-    var descriptionImgElm = document.createElement('div');
-    descriptionImgElm.classList.add('descriptionContent')
-
-    var descriptionInfoElm = document.createElement('div');
-    descriptionInfoElm.classList.add('descriptionContent')
-
-
-    var verticalLineElm = document.createElement('div');
-    verticalLineElm.classList.add('vl');
-
-
-    // var originElm = document.createElement('img');
-    // originElm.src = "img/markers/marker_origin.png";
-    // originElm.classList.add('description');
-    var originElm = document.createElement('div');
-    originElm.classList.add('box');
-    descriptionPanelElm.appendChild(originElm)
-
-
-    description.legs.forEach(leg => {
-        var lineElm = document.createElement('div');
-        lineElm.classList.add('vl');
-        lineElm.style.background = leg.color;
-        descriptionPanelElm.appendChild(lineElm);
-
-        var contentLineElm = document.createElement('div');
-        contentLineElm.classList.add('descriptionLine');
-
-
-        var durationElm = document.createElement('p');
-
-
-        var hours = Math.floor(leg.duration/36000)
-        var minutes = Math.floor(leg.duration / 60);
-        var secs = leg.duration - minutes * 60
-
-        var duration = ""
-        duration += hours == 0 ? "" : (hours + " h ")
-        duration += minutes == 0 ? "" : (minutes + " min ")
-        duration += secs + "s"
-
-        var node = document.createTextNode(duration);
-        durationElm.appendChild(node);
-
-
-        descriptionInfoElm.appendChild(durationElm);
-
-        var modeIconElm = document.createElement('img');
-        modeIconElm.src = getSrcForMode(leg.transportMode);
-        contentLineElm.appendChild(modeIconElm);
-
-        descriptionImgElm.appendChild(contentLineElm);
-
-        var boxElm = document.createElement('div');
-        boxElm.classList.add('box')
-        descriptionPanelElm.appendChild(boxElm);
-    });
-
-    // var destinationElm = document.createElement('img');
-    // destinationElm.src = "img/markers/marker_destination.png";
-    // destinationElm.classList.add('description');
-
-    // var destinationElm = document.createElement('div');
-    // destinationElm.classList.add('box');
-    // descriptionPanelElm.appendChild(destinationElm)
-
-    descriptionBoxElm.appendChild(descriptionPanelElm);
-    descriptionBoxElm.appendChild(descriptionImgElm)
-    descriptionBoxElm.appendChild(descriptionInfoElm)
-
+    showDescriptionSummary(description);
+    showDescriptionBox(description);
 }
 
 function getSrcForMode(mode) {
     switch (mode) {
         case "WALK":
-            return "img/transport_modes/walk_enabled.png"
+            return "img/transport_modes/walk.svg"
         case "CAR":
-            return "img/transport_modes/car_enabled.png"
+            return "img/transport_modes/car.svg"
         case "BICYCLE":
-            return "img/transport_modes/bike_enabled.png"
+            return "img/transport_modes/bike.svg"
         default:
-            return "img/transport_modes/transit_enabled.png"
+            return "img/transport_modes/transit.svg"
     }
 }
 
@@ -393,7 +424,6 @@ function pickOrigin(coordinates, text = "") {
 }
 
 function unpickOrigin() {
-    console.log("unpick origin");
     if (map.getSource('originMarkerSource') != undefined) {
         originPicked = false
         map.removeLayer('originMarkerLayer')
@@ -402,7 +432,6 @@ function unpickOrigin() {
 }
 
 function unpickDestination() {
-    console.log("unpick destination");
     if (map.getSource('destinationMarkerSource') != undefined) {
         destinationPicked = false
         map.removeLayer('destinationMarkerLayer')
@@ -474,6 +503,15 @@ if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(position => {
         map.panTo([position.coords.longitude, position.coords.latitude]);
     });
+
+    // Add geolocate control to the map.
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true
+    }));
+
 }
 
 var isDragging;

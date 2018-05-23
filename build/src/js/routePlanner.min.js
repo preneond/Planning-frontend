@@ -63,6 +63,10 @@ class RoutePlanner {
 
     // Plan route when origin and destination is picked
     planRoute() {
+        var originIconElm = document.getElementById("originMarker")
+        var destinationIconElm = document.getElementById("destinationMarker")
+
+
         if (!origin.isPicked || !destination.isPicked) {
             if (!origin.isPicked) originIconElm.classList.add("apply-shake");
             if (!destination.isPicked) destinationIconElm.classList.add("apply-shake");
@@ -72,7 +76,8 @@ class RoutePlanner {
         const destinationCoords = map.getSource('destinationMarkerSource')._data.features[0].geometry.coordinates
 
         var planURL = ""
-        var interRouteWithModeURL = "http://127.0.0.1:8888/api/getIntermodalRouteWithMode"
+        // var interRouteWithModeURL = "http://127.0.0.1:8888/api/getIntermodalRouteWithMode"
+        var interRouteWithModeURL = "http://db1.umotional.net/bp-opr/api/getIntermodalRouteWithMode";
         var parameters = ""
         parameters += "?origin=" + originCoords[1] + "," + originCoords[0]
         parameters += "&destination=" + destinationCoords[1] + "," + destinationCoords[0]
@@ -155,6 +160,8 @@ class RoutePlanner {
         isRoutePlanned = true;
         showDescription(json.description);
         document.getElementById('planRouteBtn').disabled = true;
+        var audio = new Audio('sound/notify_sound.mp3');
+        audio.play();
     }
 
 }

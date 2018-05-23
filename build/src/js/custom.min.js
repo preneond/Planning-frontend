@@ -44,8 +44,6 @@ modeIcons.forEach(item => {
 
 // Show description about founded Route
 function showDescription(description) {
-    document.getElementById('search-table').classList.add('hl');
-
     showDescriptionSummary(description);
     showDescriptionBox(description);
 }

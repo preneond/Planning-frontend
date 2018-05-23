@@ -1,54 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset='utf-8'>
-      <title>Intermodal Planner</title>
+  <!DOCTYPE html>
+  <html lang="en">
+     <head>
+        <meta charset='utf-8'>
+        <title>Intermodal Planner</title>
 
-			<link href="src/css/custom.css" rel='stylesheet' />
+  			<link href="src/css/custom.css" rel='stylesheet' />
 
-			<script src="libraries/awesomplete/awesomplete.js"></script>
-			<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
+  			<script src="libraries/awesomplete/awesomplete.js"></script>
+  			<link href="libraries/awesomplete/awesomplete.css" rel="stylesheet">
 
 
-			<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
-			<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet'>
-   </head>
-   <body>
-      <div id='map'></div>
-      <div id="search-box">
-         <div id="search-input">
-            <table id="search-table">
-               <tbody>
-                  <tr>
-                     <th><input id="originInput" placeholder="Origin place"></th>
-                     <th><img alt="" height="30" id="originMarker" src="img/markers/marker_origin.svg"></th>
-                  </tr>
-                  <tr>
-                     <th>
-                        <input id="destinationInput" placeholder="Destination place">
-                     </th>
-                     <th><img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.svg"></th>
-                  </tr>
-                  <tr>
-                     <th>
- 										 		<img alt="car" height="25" id="carIcon" class="modeIcon enabled" src="img/transport_modes/car.svg" />
-                        <img alt="transit" height="25" id="transitIcon" class="modeIcon enabled" src="img/transport_modes/transit.svg" />
-                        <img alt="bike" height="25" id="bikeIcon" class="modeIcon enabled" src="img/transport_modes/bike.svg" />
-                        <img alt="walk" height="25" id="walkIcon" class="modeIcon enabled" src="img/transport_modes/walk.svg" />
-                     </th>
-                     <th>
-                        <button id="planRouteBtn">Find</button>
-                     </th>
-                  </tr>
-               </tbody>
-            </table>
-         </div>
-				 <div id='description-summary'>
-				 </div>
-				 <div id='description-box'>
-         </div>
-      </div>
-      <script src="src/js/routePlanner.js"></script>
-      <script src="src/js/custom.js"></script>
-   </body>
-</html>
+  			<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
+  			<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet'>
+     </head>
+     <body>
+        <div id='map'></div>
+        <div id="search-box">
+              <form id="search-table">
+                 <div id="odForm">
+                   <input id="originInput" type="text" placeholder="Origin place">
+                   <img alt="" height="30" id="originMarker" src="img/markers/marker_origin.svg">
+                 </div>
+                 <div id="odForm">
+                   <input id="destinationInput" type="text" placeholder="Destination place">
+                   <img alt="" height="30" id="destinationMarker" src="img/markers/marker_destination.svg">
+                 </div>
+                 <div id="icForm">
+                    <img alt="car" height="25" id="carIcon" class="modeIcon enabled" src="img/transport_modes/car.svg" />
+                    <img alt="transit" height="25" id="transitIcon" class="modeIcon enabled" src="img/transport_modes/transit.svg" />
+                    <img alt="bike" height="25" id="bikeIcon" class="modeIcon enabled" src="img/transport_modes/bike.svg" />
+                    <img alt="walk" height="25" id="walkIcon" class="modeIcon enabled" src="img/transport_modes/walk.svg" />
+                </div>
+                <button id="planRouteBtn" type='button'>Find</button>
+              </form>
+  				 <div id='description-summary'>
+  				 </div>
+  				 <div id='description-box'>
+           </div>
+        </div>
+        <script src="src/js/routePlanner.js"></script>
+        <script src="src/js/custom.js"></script>
+     </body>
+  </html>

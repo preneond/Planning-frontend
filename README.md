@@ -1,11 +1,9 @@
-Jako semestralni praci jsem si vybral vytvorit intermodalni planovac cesty. Vybral jsem si to z duvodu, ze na tom pracuji v ramci bakalarske prace a jelikoz jsem si potreboval overit kvalitu planovace, tak jsem vyuzil prilezitost si vytvorit frontend v tomto predmetu. 
+The intermodal planner frontend web application has been made as a semestral project. I chose this because I work in the bachelors thesis and since I needed to verify the quality of the planned paths, I used the opportunity to create a frontend in this subject.
 
-Prostredi je velmi jednoduche a intuitivni. V levem rohu se nachazi uzivatelsky vstup, do ktereho uzivatel zada pocatecni a cilovou adresu, vybere si jake zpusoby dopravy chce pouzit a da vyhledat. Vstupni pole umi naseptavat, takze neni treba psat souradnice, nebo jinak slozite vstupy.
+The environment is very simple and intuitive. In the left corner there is a user input where the user sets the initial and the target address, chooses what kind of transport he wants to use and search. The input fields can not be broken, so you do not need to write coordinates or otherwise complicate inputs.
 
-Dale je mozne si pocatek a konec zvolit kliknutim na mapu a nasledne ho ruzne presouvat.  Po interakci s mapou se vstupni pole vyplni pomoci reverse geocodingu a uzivatel ma informace o tom, na jake misto presne kliknul.
+You can choose the beginning and end by clicking on the map and then moving it differently. After interacting with the map, the input field is filled in by reverse geocoding, and the user has information about exactly where they clicked.
 
+When you click on the "find" button, the route will be searched for, and you'll find information about travel times and journey times
 
-Po kliknuti na tlacitko "find" se trasa vyhleda a objevi se informace o prestupech a delky trvani cesty
-
-
-Funguje pouze na okoli PRAHY!!
+It works only on the surroundings of PRAGUE !!
